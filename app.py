@@ -248,10 +248,10 @@ else:
 # Sentiment Analysis (if applicable)
 if optimization_method == "Sentiment-Aware (Phase 2)":
     st.sidebar.subheader("🗞️ Sentiment Settings")
-    news_api_key = os.getenv("NEWS_API_KEY", "")
+    news_api_key = st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", ""))
     
     if not news_api_key:
-        st.sidebar.warning("⚠️ NEWS_API_KEY not configured in .env")
+        st.sidebar.warning("⚠️ NEWS_API_KEY not configured. Add it in Streamlit Cloud → Settings → Secrets (or in your local .env file).")
     
     sentiment_weight = st.sidebar.slider(
         "Sentiment Weight",
@@ -463,7 +463,10 @@ def fig_to_png_bytes(fig, width=800, height=450):
     """Convert a Plotly figure to PNG bytes using kaleido."""
     try:
         return pio.to_image(fig, format="png", width=width, height=height)
-    except Exception:
+    except Exception as e:
+        # Store the kaleido error in session state so we can surface it to the user
+        if "kaleido_error" not in st.session_state:
+            st.session_state["kaleido_error"] = str(e)
         return None
 
 
@@ -754,7 +757,7 @@ with tab1:
                     from sentiment.lightweight_analyzer import LightweightSentimentAnalyzer
                     from sentiment.news_wrapper import NewsCollector
 
-                    news_api_key = os.getenv("NEWS_API_KEY", "")
+                    news_api_key = st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", ""))
                     sentiment_scores = {}
 
                     if news_api_key:
@@ -1213,7 +1216,7 @@ with tab4:
                 
                 # ── Hybrid Sentiment-Quantum ─────────────────────────────────
                 with st.spinner("Benchmarking Hybrid Sentiment-Quantum (may take ~2 min)..."):
-                    hybrid = _HQ(news_api_key=os.getenv("NEWS_API_KEY", ""))
+                    hybrid = _HQ(news_api_key=st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", "")))
                     t0 = time.time()
                     _, w_arr_h, _ = hybrid.optimize(
                         returns=returns,
@@ -1345,27 +1348,39 @@ if 'optimization_results' in st.session_state:
     )
     dl_col1, dl_col2, dl_col3 = st.columns([1, 2, 1])
     with dl_col2:
-        with st.spinner("Preparing PDF…"):
-            try:
-                pdf_bytes = generate_pdf_report(
-                    results_for_pdf,
-                    selected_tickers,
-                    risk_free_rate,
-                    preset_choice,
-                    optimization_method
-                )
-                filename = f"qorbit_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
-                st.download_button(
-                    label="📥 Download PDF Report",
-                    data=pdf_bytes,
-                    file_name=filename,
-                    mime="application/pdf",
-                    use_container_width=True,
-                    type="primary"
-                )
-                st.caption("Includes: Portfolio Weights · Performance Metrics · Strategy Comparison · All Charts")
-            except Exception as e:
-                st.error(f"PDF generation failed: {e}")
+        if st.button("📄 Generate & Download PDF Report", type="primary", use_container_width=True):
+            # Clear any previous kaleido error
+            st.session_state.pop("kaleido_error", None)
+            with st.spinner("Generating PDF report…"):
+                try:
+                    pdf_bytes = generate_pdf_report(
+                        results_for_pdf,
+                        selected_tickers,
+                        risk_free_rate,
+                        preset_choice,
+                        optimization_method
+                    )
+                    filename = f"qorbit_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+
+                    # Warn if kaleido failed (charts will be absent from PDF)
+                    if st.session_state.get("kaleido_error"):
+                        st.warning(
+                            f"⚠️ Chart images could not be rendered (kaleido error): "
+                            f"{st.session_state['kaleido_error']}\n\n"
+                            "The PDF will be downloaded without chart images. "
+                            "This is a known issue on Streamlit Cloud — the tables and metrics are still included."
+                        )
+
+                    st.download_button(
+                        label="📥 Click here to download PDF",
+                        data=pdf_bytes,
+                        file_name=filename,
+                        mime="application/pdf",
+                        use_container_width=True,
+                    )
+                    st.caption("Includes: Portfolio Weights · Performance Metrics · Strategy Comparison")
+                except Exception as e:
+                    st.error(f"❌ PDF generation failed: {e}")
 
 # Footer
 st.markdown("""
