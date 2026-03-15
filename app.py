@@ -456,102 +456,177 @@ def create_efficient_frontier_plot(returns, optimizer):
     return fig
 
 # =====================================
-# PDF Report Generator
+# PDF Report Generator  (matplotlib-based — no kaleido needed)
 # =====================================
 
-def fig_to_png_bytes(fig, width=800, height=450):
-    """Convert a Plotly figure to PNG bytes using kaleido."""
-    try:
-        return pio.to_image(fig, format="png", width=width, height=height)
-    except Exception as e:
-        # Store the kaleido error in session state so we can surface it to the user
-        if "kaleido_error" not in st.session_state:
-            st.session_state["kaleido_error"] = str(e)
-        return None
+import matplotlib
+matplotlib.use('Agg')  # non-interactive backend, safe for servers
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.gridspec import GridSpec
+
+
+# ── Colour palette ────────────────────────────────────────────────────────────
+_PURPLE   = '#667eea'
+_PINK     = '#f5576c'
+_GREEN    = '#43e97b'
+_TEAL     = '#38f9d7'
+_PALETTE  = ['#667eea', '#f5576c', '#43e97b', '#38f9d7', '#fa709a',
+             '#fee140', '#30cfd0', '#a18cd1', '#fda085', '#96fbc4']
+
+
+def _fig_to_bytes(fig):
+    """Save a matplotlib figure to PNG bytes and close it."""
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=130, bbox_inches='tight',
+                facecolor=fig.get_facecolor())
+    plt.close(fig)
+    buf.seek(0)
+    return buf.read()
+
+
+def _make_pie_chart(weights, tickers):
+    """Donut chart of portfolio weights."""
+    ws = pd.Series(weights.values, index=tickers)
+    ws = ws[ws > 0.01].sort_values(ascending=False)
+    colors = _PALETTE[:len(ws)]
+
+    fig, ax = plt.subplots(figsize=(7, 4.5), facecolor='white')
+    wedges, texts, autotexts = ax.pie(
+        ws.values, labels=ws.index, autopct='%1.1f%%',
+        colors=colors, startangle=140,
+        wedgeprops=dict(width=0.55, edgecolor='white', linewidth=2),
+        pctdistance=0.78
+    )
+    for t in autotexts:
+        t.set_fontsize(9)
+        t.set_color('white')
+        t.set_fontweight('bold')
+    ax.set_title('Portfolio Allocation', fontsize=13, fontweight='bold', pad=16)
+    fig.tight_layout()
+    return _fig_to_bytes(fig)
+
+
+def _make_efficient_frontier(returns, weights, risk_free_rate):
+    """Scatter cloud + optimal point."""
+    mean_ret = returns.mean() * 252
+    cov      = returns.cov() * 252
+    np.random.seed(0)
+    n = len(returns.columns)
+    risks, rets, sharpes = [], [], []
+    for _ in range(500):
+        w = np.random.random(n); w /= w.sum()
+        r = float(np.dot(w, mean_ret))
+        v = float(np.sqrt(w @ cov.values @ w))
+        risks.append(v); rets.append(r)
+        sharpes.append((r - risk_free_rate) / v)
+
+    opt_r = float(np.dot(weights.values, mean_ret))
+    opt_v = float(np.sqrt(weights.values @ cov.values @ weights.values))
+
+    fig, ax = plt.subplots(figsize=(7, 4), facecolor='white')
+    sc = ax.scatter(risks, rets, c=sharpes, cmap='viridis', s=18, alpha=0.55)
+    plt.colorbar(sc, ax=ax, label='Sharpe Ratio', shrink=0.8)
+    ax.scatter([opt_v], [opt_r], s=220, c='red', marker='*',
+               zorder=5, label='Optimal Portfolio')
+    ax.set_xlabel('Volatility (Risk)', fontsize=10)
+    ax.set_ylabel('Expected Return', fontsize=10)
+    ax.set_title('Efficient Frontier', fontsize=13, fontweight='bold')
+    ax.legend(fontsize=9)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f'{v:.0%}'))
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f'{v:.0%}'))
+    ax.grid(True, alpha=0.3)
+    fig.tight_layout()
+    return _fig_to_bytes(fig)
+
+
+def _make_cumulative_chart(opt_cum, eq_cum=None):
+    """Line chart of cumulative returns."""
+    fig, ax = plt.subplots(figsize=(7, 3.5), facecolor='white')
+    ax.plot(opt_cum.index, opt_cum.values, color=_PURPLE, linewidth=2,
+            label='Optimized Portfolio')
+    ax.fill_between(opt_cum.index, 1, opt_cum.values,
+                    alpha=0.15, color=_PURPLE)
+    if eq_cum is not None:
+        ax.plot(eq_cum.index, eq_cum.values, color=_PINK, linewidth=2,
+                linestyle='--', label='Equal-Weight')
+        ax.fill_between(eq_cum.index, 1, eq_cum.values,
+                        alpha=0.10, color=_PINK)
+    ax.axhline(1, color='gray', linewidth=0.8, linestyle=':')
+    ax.set_xlabel('Date', fontsize=10)
+    ax.set_ylabel('Cumulative Return', fontsize=10)
+    title = 'Growth Comparison' if eq_cum is not None else 'Portfolio Growth Over Time'
+    ax.set_title(title, fontsize=13, fontweight='bold')
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+    fig.autofmt_xdate()
+    fig.tight_layout()
+    return _fig_to_bytes(fig)
+
+
+def _make_bar_chart(labels, values, colors, title, ylabel, fmt=None):
+    """Generic two-bar comparison chart."""
+    fig, ax = plt.subplots(figsize=(5.5, 3.2), facecolor='white')
+    bars = ax.bar(labels, values, color=colors, width=0.45,
+                  edgecolor='white', linewidth=1.5)
+    for bar, v in zip(bars, values):
+        txt = fmt(v) if fmt else f'{v:.3f}'
+        ax.text(bar.get_x() + bar.get_width() / 2,
+                bar.get_height() + max(values) * 0.02,
+                txt, ha='center', va='bottom', fontsize=10, fontweight='bold')
+    ax.set_title(title, fontsize=12, fontweight='bold')
+    ax.set_ylabel(ylabel, fontsize=10)
+    ax.set_ylim(0, max(values) * 1.22)
+    ax.grid(True, axis='y', alpha=0.3)
+    ax.spines[['top', 'right']].set_visible(False)
+    fig.tight_layout()
+    return _fig_to_bytes(fig)
 
 
 def generate_pdf_report(results, selected_tickers, risk_free_rate, preset_choice, optimization_method):
     """Generate a comprehensive PDF report covering all 3 analysis sections."""
-    weights      = results['weights']
-    perf         = results['performance']
-    returns      = results['returns']
-    optimizer    = results['optimizer']
+    weights   = results['weights']
+    perf      = results['performance']
+    returns   = results['returns']
 
     # ── Pre-compute comparison data ──────────────────────────────────────────
-    equal_weights       = pd.Series([1 / len(selected_tickers)] * len(selected_tickers), index=selected_tickers)
-    opt_returns_series  = (returns * weights).sum(axis=1)
-    eq_returns_series   = (returns * equal_weights).sum(axis=1)
+    equal_weights      = pd.Series([1 / len(selected_tickers)] * len(selected_tickers),
+                                   index=selected_tickers)
+    opt_returns_series = (returns * weights).sum(axis=1)
+    eq_returns_series  = (returns * equal_weights).sum(axis=1)
 
-    opt_annual_return   = opt_returns_series.mean() * 252
-    opt_annual_vol      = opt_returns_series.std() * np.sqrt(252)
-    opt_sharpe          = (opt_annual_return - risk_free_rate) / opt_annual_vol
+    opt_annual_return  = opt_returns_series.mean() * 252
+    opt_annual_vol     = opt_returns_series.std()  * np.sqrt(252)
+    opt_sharpe         = (opt_annual_return - risk_free_rate) / opt_annual_vol
 
-    eq_annual_return    = eq_returns_series.mean() * 252
-    eq_annual_vol       = eq_returns_series.std() * np.sqrt(252)
-    eq_sharpe           = (eq_annual_return - risk_free_rate) / eq_annual_vol
+    eq_annual_return   = eq_returns_series.mean() * 252
+    eq_annual_vol      = eq_returns_series.std()  * np.sqrt(252)
+    eq_sharpe          = (eq_annual_return - risk_free_rate) / eq_annual_vol
 
-    opt_cumulative      = (1 + opt_returns_series).cumprod()
-    eq_cumulative       = (1 + eq_returns_series).cumprod()
-    portfolio_cum       = (1 + opt_returns_series).cumprod()
+    opt_cumulative     = (1 + opt_returns_series).cumprod()
+    eq_cumulative      = (1 + eq_returns_series).cumprod()
 
-    # ── Build chart images ───────────────────────────────────────────────────
-    # Pie chart
-    pie_fig = create_weights_pie_chart(weights, selected_tickers)
-    # Efficient frontier
-    ef_fig  = create_efficient_frontier_plot(returns, optimizer)
-
-    # Cumulative (single portfolio)
-    cum_fig = go.Figure()
-    cum_fig.add_trace(go.Scatter(x=portfolio_cum.index, y=portfolio_cum.values,
-                                 mode='lines', name='Portfolio',
-                                 line=dict(color='#667eea', width=3),
-                                 fill='tozeroy', fillcolor='rgba(102,126,234,0.2)'))
-    cum_fig.update_layout(title='Portfolio Growth Over Time', xaxis_title='Date',
-                          yaxis_title='Cumulative Return', height=400,
-                          template='plotly_white')
-
-    # Volatility bar
-    vol_fig = go.Figure(data=[go.Bar(
-        x=['Optimized', 'Equal-Weight'],
-        y=[opt_annual_vol * 100, eq_annual_vol * 100],
-        marker_color=['#667eea', '#f5576c'],
-        text=[f"{opt_annual_vol:.2%}", f"{eq_annual_vol:.2%}"],
-        textposition='auto'
-    )])
-    vol_fig.update_layout(title='Risk Comparison (Lower is Better)',
-                          yaxis_title='Volatility (%)', height=350,
-                          template='plotly_white')
-
-    # Sharpe bar
-    sharpe_fig = go.Figure(data=[go.Bar(
-        x=['Optimized', 'Equal-Weight'],
-        y=[opt_sharpe, eq_sharpe],
-        marker_color=['#43e97b', '#38f9d7'],
-        text=[f"{opt_sharpe:.2f}", f"{eq_sharpe:.2f}"],
-        textposition='auto'
-    )])
-    sharpe_fig.update_layout(title='Risk-Adjusted Return (Higher is Better)',
-                              yaxis_title='Sharpe Ratio', height=350,
-                              template='plotly_white')
-
-    # Cumulative comparison
-    comp_cum_fig = go.Figure()
-    comp_cum_fig.add_trace(go.Scatter(x=opt_cumulative.index, y=opt_cumulative.values,
-                                      mode='lines', name='Optimized Portfolio',
-                                      line=dict(color='#667eea', width=3)))
-    comp_cum_fig.add_trace(go.Scatter(x=eq_cumulative.index, y=eq_cumulative.values,
-                                      mode='lines', name='Equal-Weight Portfolio',
-                                      line=dict(color='#f5576c', width=3, dash='dash')))
-    comp_cum_fig.update_layout(title='Growth Over Time', xaxis_title='Date',
-                               yaxis_title='Cumulative Return', height=400,
-                               template='plotly_white')
-
-    pie_bytes      = fig_to_png_bytes(pie_fig, 700, 450)
-    ef_bytes       = fig_to_png_bytes(ef_fig, 800, 450)
-    cum_bytes      = fig_to_png_bytes(cum_fig, 800, 380)
-    vol_bytes      = fig_to_png_bytes(vol_fig, 700, 330)
-    sharpe_bytes   = fig_to_png_bytes(sharpe_fig, 700, 330)
-    comp_cum_bytes = fig_to_png_bytes(comp_cum_fig, 800, 380)
+    # ── Build chart PNGs with matplotlib ─────────────────────────────────────
+    pie_bytes      = _make_pie_chart(weights, selected_tickers)
+    ef_bytes       = _make_efficient_frontier(returns, weights, risk_free_rate)
+    cum_bytes      = _make_cumulative_chart(opt_cumulative)
+    vol_bytes      = _make_bar_chart(
+        ['Optimized', 'Equal-Weight'],
+        [opt_annual_vol * 100, eq_annual_vol * 100],
+        [_PURPLE, _PINK],
+        'Risk Comparison (Lower is Better)',
+        'Volatility (%)',
+        fmt=lambda v: f'{v:.1f}%'
+    )
+    sharpe_bytes   = _make_bar_chart(
+        ['Optimized', 'Equal-Weight'],
+        [max(opt_sharpe, 0.001), max(eq_sharpe, 0.001)],
+        [_GREEN, _TEAL],
+        'Risk-Adjusted Return (Higher is Better)',
+        'Sharpe Ratio',
+        fmt=lambda v: f'{v:.2f}'
+    )
+    comp_cum_bytes = _make_cumulative_chart(opt_cumulative, eq_cumulative)
 
     # ── Build PDF ────────────────────────────────────────────────────────────
     def safe_text(text):
@@ -645,12 +720,10 @@ def generate_pdf_report(results, selected_tickers, risk_free_rate, preset_choice
     pdf.cell(0, 6, f'Method: {optimization_method}   |   Portfolio: {preset_choice}', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.ln(4)
 
-    # Weights table
     weights_sorted = weights.sort_values(ascending=False)
     rows = [(t, f'{w:.2%}') for t, w in weights_sorted.items() if w > 0.01]
     two_col_table(['Ticker', 'Allocation Weight'], rows, [95, 95])
 
-    # Pie chart
     pdf.set_font('Helvetica', 'B', 11)
     pdf.set_text_color(*DARK)
     pdf.cell(0, 8, 'Portfolio Allocation', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
@@ -660,7 +733,6 @@ def generate_pdf_report(results, selected_tickers, risk_free_rate, preset_choice
     pdf.add_page()
     section_title('2. Performance Analysis')
 
-    # Metrics table
     metric_rows = [
         ('Expected Return', perf['Expected Return']),
         ('Volatility',      perf['Volatility']),
@@ -672,11 +744,11 @@ def generate_pdf_report(results, selected_tickers, risk_free_rate, preset_choice
     pdf.set_font('Helvetica', 'B', 11)
     pdf.set_text_color(*DARK)
     pdf.cell(0, 8, 'Efficient Frontier', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    embed_image(ef_bytes, w=180)
+    embed_image(ef_bytes, w=175)
 
     pdf.set_font('Helvetica', 'B', 11)
     pdf.cell(0, 8, 'Cumulative Portfolio Returns', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    embed_image(cum_bytes, w=180)
+    embed_image(cum_bytes, w=175)
 
     # ────────── PAGE 4: STRATEGY COMPARISON ──────────────────────────────
     pdf.add_page()
@@ -696,17 +768,20 @@ def generate_pdf_report(results, selected_tickers, risk_free_rate, preset_choice
     pdf.set_font('Helvetica', 'B', 11)
     pdf.set_text_color(*DARK)
     pdf.cell(0, 8, 'Volatility Comparison', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    embed_image(vol_bytes, w=160)
+    embed_image(vol_bytes, w=140)
 
     pdf.set_font('Helvetica', 'B', 11)
     pdf.cell(0, 8, 'Sharpe Ratio Comparison', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    embed_image(sharpe_bytes, w=160)
+    embed_image(sharpe_bytes, w=140)
 
     pdf.set_font('Helvetica', 'B', 11)
     pdf.cell(0, 8, 'Cumulative Returns Comparison', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    embed_image(comp_cum_bytes, w=180)
+    embed_image(comp_cum_bytes, w=175)
 
     return bytes(pdf.output())
+
+
+
 
 
 # =====================================
