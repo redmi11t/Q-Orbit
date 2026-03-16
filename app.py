@@ -491,7 +491,7 @@ def _fig_to_bytes(fig):
 
 def _make_pie_chart(weights, tickers):
     """Donut chart of portfolio weights."""
-    ws = pd.Series(weights.values, index=tickers)
+    ws = pd.Series(weights.values, index=weights.index)
     ws = ws[ws > 0.01].sort_values(ascending=False)
     colors = _PALETTE[:len(ws)]
 
@@ -594,8 +594,8 @@ def generate_pdf_report(results, selected_tickers, risk_free_rate, preset_choice
     returns   = results['returns']
 
     # ── Pre-compute comparison data ──────────────────────────────────────────
-    equal_weights      = pd.Series([1 / len(selected_tickers)] * len(selected_tickers),
-                                   index=selected_tickers)
+    equal_weights      = pd.Series([1 / len(weights)] * len(weights),
+                                   index=weights.index)
     opt_returns_series = (returns * weights).sum(axis=1)
     eq_returns_series  = (returns * equal_weights).sum(axis=1)
 
