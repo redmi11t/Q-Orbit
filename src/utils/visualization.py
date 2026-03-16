@@ -4,10 +4,17 @@ Create charts and plots for portfolio analysis
 """
 
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Optional
+
+# Optional seaborn import
+try:
+    import seaborn as sns
+    HAS_SEABORN = True
+except ImportError:
+    HAS_SEABORN = False
+    sns = None
 
 # Optional plotly import
 try:
@@ -17,8 +24,9 @@ try:
 except ImportError:
     HAS_PLOTLY = False
 
-# Set style
-sns.set_style("whitegrid")
+# Set style (only if seaborn is available)
+if HAS_SEABORN:
+    sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 6)
 
 

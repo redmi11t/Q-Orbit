@@ -3,7 +3,12 @@ News Collection Module
 Fetch financial news articles for portfolio assets
 """
 
-from newsapi import NewsApiClient
+try:
+    from newsapi import NewsApiClient
+    NEWSAPI_AVAILABLE = True
+except ImportError:
+    NEWSAPI_AVAILABLE = False
+    NewsApiClient = None
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import pandas as pd
@@ -23,6 +28,10 @@ class NewsCollector:
             api_key: NewsAPI key
             cache_dir: Directory to cache news data
         """
+        if not NEWSAPI_AVAILABLE:
+            raise ImportError(
+                "newsapi-python is not installed. Run: pip install newsapi-python"
+            )
         self.newsapi = NewsApiClient(api_key=api_key)
         self.cache_dir = cache_dir or Path("data/news")
         self.cache_dir.mkdir(parents=True, exist_ok=True)

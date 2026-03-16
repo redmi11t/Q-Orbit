@@ -167,6 +167,7 @@ class SentimentConstraintMapper:
         # Calculate base statistics
         expected_returns = returns.mean() * 252  # Annualized
         covariance = returns.cov() * 252
+        covariance = (covariance + covariance.T) / 2
         
         # Apply sentiment adjustments
         adjusted_returns = expected_returns.copy()

@@ -128,11 +128,14 @@ class MarkowitzOptimizer:
         """
         n_assets = len(returns.columns)
         sigma = returns.cov() * 252
+        # Enforce exact symmetry at the NumPy level to satisfy cvxpy's check
+        sigma_np = (sigma.values + sigma.values.T) / 2
+        sigma_psd = cp.psd_wrap(sigma_np)
         
         w = cp.Variable(n_assets)
         
         # Objective: minimize variance
-        objective = cp.Minimize(cp.quad_form(w, sigma.values))
+        objective = cp.Minimize(cp.quad_form(w, sigma_psd))
         
         # Constraints
         constraint_list = [
@@ -172,11 +175,14 @@ class MarkowitzOptimizer:
         n_assets = len(returns.columns)
         mu = returns.mean() * 252
         sigma = returns.cov() * 252
+        # Enforce exact symmetry at the NumPy level to satisfy cvxpy's check
+        sigma_np = (sigma.values + sigma.values.T) / 2
+        sigma_psd = cp.psd_wrap(sigma_np)
         
         w = cp.Variable(n_assets)
         
         # Objective: minimize risk
-        objective = cp.Minimize(cp.quad_form(w, sigma.values))
+        objective = cp.Minimize(cp.quad_form(w, sigma_psd))
         
         # Constraints
         constraint_list = [

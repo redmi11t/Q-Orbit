@@ -10,8 +10,15 @@ import cvxpy as cp
 
 from ..classical.baseline import MarkowitzOptimizer
 from ..sentiment.collector import NewsCollector
-from ..sentiment.analyzer import FinancialSentimentAnalyzer
 from ..sentiment.constraints import SentimentConstraintMapper
+
+# FinBERT is heavy (PyTorch) – import only if available
+try:
+    from ..sentiment.analyzer import FinancialSentimentAnalyzer
+    _FINBERT_AVAILABLE = True
+except (ImportError, OSError):
+    _FINBERT_AVAILABLE = False
+    FinancialSentimentAnalyzer = None
 
 
 class SentimentAwareOptimizer(MarkowitzOptimizer):
@@ -188,7 +195,10 @@ class SentimentAwareOptimizer(MarkowitzOptimizer):
         
         # Objective: maximize Sharpe ratio with sentiment-adjusted returns
         portfolio_return = adj_returns.values @ w
-        portfolio_risk = cp.quad_form(w, adj_cov.values)
+        
+        # Ensure symmetry for cvxpy
+        S = (adj_cov.values + adj_cov.values.T) / 2
+        portfolio_risk = cp.quad_form(w, S)
         
         objective = cp.Maximize(portfolio_return / cp.sqrt(portfolio_risk))
         
