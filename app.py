@@ -311,6 +311,10 @@ def fetch_real_returns(tickers, days=365):
         data = yf.download(tickers, start=start_date, end=end_date, progress=False, auto_adjust=True)
         
         prices = data['Close']
+        prices = prices.dropna(axis=1, how='all')  # Remove tickers with no data
+        
+        if prices.empty or len(prices.columns) < 2:
+            return None
         
         returns = prices.pct_change().dropna()
         return returns

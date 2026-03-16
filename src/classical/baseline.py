@@ -45,6 +45,8 @@ class MarkowitzOptimizer:
         # Calculate expected returns and covariance
         mu = returns.mean() * 252  # Annualized
         sigma = returns.cov() * 252
+        # Add regularization to covariance matrix
+        sigma.values += 1e-6 * np.eye(n_assets)
         
         # Objective function: negative Sharpe ratio (to minimize)
         def neg_sharpe(weights):
@@ -130,6 +132,8 @@ class MarkowitzOptimizer:
         sigma = returns.cov() * 252
         # Enforce exact symmetry at the NumPy level to satisfy cvxpy's check
         sigma_np = (sigma.values + sigma.values.T) / 2
+        # Add regularization to ensure positive definiteness
+        sigma_np += 1e-6 * np.eye(n_assets)
         sigma_psd = cp.psd_wrap(sigma_np)
         
         w = cp.Variable(n_assets)
