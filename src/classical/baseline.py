@@ -46,12 +46,13 @@ class MarkowitzOptimizer:
         mu = returns.mean() * 252  # Annualized
         sigma = returns.cov() * 252
         # Add regularization to covariance matrix
-        sigma.values += 1e-6 * np.eye(n_assets)
+        sigma_np = sigma.values
+        sigma_np += 1e-6 * np.eye(n_assets)
         
         # Objective function: negative Sharpe ratio (to minimize)
         def neg_sharpe(weights):
             port_return = np.dot(weights, mu)
-            port_vol = np.sqrt(np.dot(weights.T, np.dot(sigma, weights)))
+            port_vol = np.sqrt(np.dot(weights.T, np.dot(sigma_np, weights)))
             if port_vol < 1e-10:
                 return 0.0
             return -(port_return - self.risk_free_rate) / port_vol
