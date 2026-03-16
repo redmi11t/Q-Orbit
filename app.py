@@ -917,7 +917,7 @@ with tab1:
             
             # Pie Chart
             st.plotly_chart(
-                create_weights_pie_chart(weights, selected_tickers),
+                create_weights_pie_chart(weights, list(weights.index)),
                 use_container_width=True
             )
 
