@@ -197,37 +197,12 @@ All parameters are configurable from the Streamlit sidebar:
 
 ---
 
-## 🔒 Security Notes
-
-- **API keys** are loaded from `.env` (local) or Streamlit Cloud Secrets — **never hardcoded**
-- `.env` and `.streamlit/secrets.toml` are listed in `.gitignore`
-- IBM Quantum token is optional; the app falls back to local simulation when absent
-
----
-
 ## 📦 Running the CLI Benchmark
 
 ```bash
 # Compare all 4 strategies on synthetic data
 python benchmarks/performance_comparison.py
 ```
-
----
-
-## 🐛 Recent Bug Fixes & Improvements
-
-| Category | Fix |
-|---|---|
-| **Algorithm** | QUBO budget penalty off-diagonal factor corrected (1× → 2×) |
-| **Algorithm** | IBM QPU bitstring endianness aligned with Aer simulator (LSB-first reversal) |
-| **Stability** | CVXPY solver status checked before using weights — no silent NaN propagation |
-| **Stability** | Efficient frontier generation no longer corrupts current optimizer state |
-| **Data** | Covariance matrix always positive-definite (≥2 factors + regularization) |
-| **Performance** | SentimentCache batches disk writes (10 entries/flush vs. 1 per article) |
-| **UI** | Demo mode clearly labelled with `⚠️ DEMO MODE` warning banner |
-| **UI** | Bar charts handle negative Sharpe Ratio correctly |
-| **UX** | Real market data cache has 1-hour TTL (prevents stale intraday data) |
-| **Code** | `sys.path` uses absolute `__file__`-relative path (works from any directory) |
 
 ---
 
