@@ -108,27 +108,31 @@ class LightweightSentimentAnalyzer:
         """Analyze sentiment for all articles in DataFrame"""
         if news_df.empty:
             return news_df
-        
+
+        # Phase 4 Fix #14: Work on a copy so the caller's DataFrame is not
+        # mutated in-place.
+        news_df = news_df.copy()
+
         print(f"\\nAnalyzing sentiment for {len(news_df)} articles...")
-        
+
         sentiments = []
         for idx, row in news_df.iterrows():
             text = str(row.get('title', ''))
             if row.get('description'):
                 text += '. ' + str(row['description'])
-            
+
             sentiment = self.analyze_text(text)
             sentiments.append(sentiment)
-            
+
             if (idx + 1) % 10 == 0:
                 print(f"  Processed {idx + 1}/{len(news_df)} articles...")
-        
+
         news_df['sentiment_label'] = [s['label'] for s in sentiments]
         news_df['sentiment_score'] = [s['score'] for s in sentiments]
         news_df['sentiment_value'] = [s['sentiment_value'] for s in sentiments]
-        
+
         print(f"✓ Sentiment analysis complete!")
-        
+
         return news_df
     
     def get_stock_sentiment_summary(self, news_df: pd.DataFrame) -> pd.DataFrame:

@@ -148,39 +148,44 @@ class FinancialSentimentAnalyzer:
     def analyze_news_dataframe(self, news_df: pd.DataFrame) -> pd.DataFrame:
         """
         Analyze sentiment for all articles in DataFrame
-        
+
         Args:
             news_df: DataFrame with news articles
-            
+
         Returns:
             DataFrame with added sentiment columns
         """
         if news_df.empty:
             return news_df
-        
+
+        # Phase 4 Fix #14: Work on a copy so the caller's DataFrame is not
+        # mutated in-place (avoids SettingWithCopyWarning and unexpected
+        # side-effects when the same news_df is reused downstream).
+        news_df = news_df.copy()
+
         print(f"\nAnalyzing sentiment for {len(news_df)} articles...")
-        
+
         sentiments = []
         for idx, row in news_df.iterrows():
             # Combine title and description
             text = str(row.get('title', ''))
             if row.get('description'):
                 text += '. ' + str(row['description'])
-            
+
             sentiment = self.analyze_text(text)
             sentiments.append(sentiment)
-            
+
             # Progress indicator
             if (idx + 1) % 10 == 0:
                 print(f"  Processed {idx + 1}/{len(news_df)} articles...")
-        
+
         # Add sentiment columns
         news_df['sentiment_label'] = [s['label'] for s in sentiments]
         news_df['sentiment_score'] = [s['score'] for s in sentiments]
         news_df['sentiment_value'] = [s['sentiment_value'] for s in sentiments]
-        
+
         print(f"✓ Sentiment analysis complete!")
-        
+
         return news_df
     
     def get_stock_sentiment_summary(self, news_df: pd.DataFrame) -> pd.DataFrame:
@@ -208,28 +213,47 @@ class FinancialSentimentAnalyzer:
 
 class SentimentCache:
     """Cache sentiment analysis results to avoid re-processing"""
-    
-    def __init__(self, cache_file: Path = Path("data/sentiment/cache.json")):
+
+    def __init__(self, cache_file: Path = Path("data/sentiment/cache.json"),
+                 save_interval: int = 10):
         self.cache_file = cache_file
         self.cache_file.parent.mkdir(parents=True, exist_ok=True)
         self.cache = self._load_cache()
-    
+        # Phase 4 Fix #10: Track dirty count so we write in batches.
+        # Writing the full JSON on every single article causes 100 rewrites
+        # per 10-ticker × 10-article run. Now we flush every `save_interval`
+        # new entries, and again when the object is destroyed.
+        self._dirty = 0
+        self.save_interval = save_interval
+
     def _load_cache(self) -> Dict:
         if self.cache_file.exists():
             with open(self.cache_file, 'r') as f:
                 return json.load(f)
         return {}
-    
+
     def _save_cache(self):
         with open(self.cache_file, 'w') as f:
             json.dump(self.cache, f, indent=2)
-    
+        self._dirty = 0
+
     def get(self, text_hash: str) -> Optional[Dict]:
         return self.cache.get(text_hash)
-    
+
     def set(self, text_hash: str, sentiment: Dict):
         self.cache[text_hash] = sentiment
-        self._save_cache()
+        self._dirty += 1
+        # Flush only every save_interval new entries
+        if self._dirty >= self.save_interval:
+            self._save_cache()
+
+    def __del__(self):
+        """Flush any remaining dirty entries when the cache object is GC'd."""
+        try:
+            if self._dirty > 0:
+                self._save_cache()
+        except Exception:
+            pass  # Never raise in __del__
 
 
 if __name__ == "__main__":

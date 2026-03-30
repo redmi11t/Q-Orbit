@@ -39,6 +39,7 @@ class Config:
     # Quantum Settings
     QAOA_LAYERS = int(os.getenv("QAOA_LAYERS", "3"))
     QUANTUM_BACKEND = os.getenv("QUANTUM_BACKEND", "qasm_simulator")
+    IBM_QUANTUM_BACKEND = os.getenv("IBM_QUANTUM_BACKEND", "ibm_brisbane")
     MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "100"))
     
     # Logging

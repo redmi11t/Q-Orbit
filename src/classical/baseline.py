@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional, Tuple
-from scipy.optimize import minimize
+from scipy.optimize import minimize, differential_evolution, LinearConstraint
 import cvxpy as cp
 
 
@@ -31,12 +31,16 @@ class MarkowitzOptimizer:
         constraints: Optional[Dict] = None
     ) -> pd.Series:
         """
-        Find the portfolio with maximum Sharpe ratio using scipy
-        
+        Find the portfolio with maximum Sharpe ratio.
+
+        Uses a two-stage approach:
+          1. ``differential_evolution`` (global) to escape local minima.
+          2. Multi-start SLSQP (local) to polish the solution.
+
         Args:
             returns: DataFrame of asset returns
             constraints: Optional constraints dict
-            
+
         Returns:
             Series of optimal weights
         """
@@ -70,19 +74,47 @@ class MarkowitzOptimizer:
         
         # Constraints: weights sum to 1
         cons = [{'type': 'eq', 'fun': lambda x: np.sum(x) - 1}]
-        
-        # Try multiple initial guesses and methods for robustness
-        best_result = None
-        initial_guesses = [
-            np.array([1/n_assets] * n_assets),
-            np.random.dirichlet(np.ones(n_assets)),
-        ]
+
+        # ── Fix 5: Global search with differential_evolution ─────────────────
+        # SLSQP is gradient-based and can converge to a local minimum.  We run
+        # a global search first and use the best solution found as the primary
+        # warm-start for SLSQP.  This adds a small amount of compute time but
+        # substantially reduces the chance of suboptimal convergence.
+        initial_guesses = []
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                de_result = differential_evolution(
+                    neg_sharpe,
+                    bounds=bounds,
+                    maxiter=300,
+                    tol=1e-8,
+                    seed=42,
+                    constraints=LinearConstraint(
+                        np.ones((1, n_assets)), lb=1.0, ub=1.0
+                    ),
+                    polish=False,   # We polish with SLSQP below
+                    workers=1,      # Keep deterministic / avoid pickling issues
+                )
+            if de_result.success or de_result.fun < 0:
+                # Normalise to satisfy sum-to-1 exactly after DE
+                de_x = np.clip(de_result.x, 0, max_weight)
+                de_x = de_x / de_x.sum()
+                initial_guesses.append(de_x)
+        except Exception:
+            pass  # Fall through to the deterministic guesses below
+        # ─────────────────────────────────────────────────────────────────────
+
+        # Deterministic fallback guesses (equal weight, dirichlet, biased)
+        initial_guesses.append(np.array([1/n_assets] * n_assets))
+        initial_guesses.append(np.random.dirichlet(np.ones(n_assets)))
         
         # Add a guess biased toward the highest-return asset
         biased = np.ones(n_assets) * 0.5 / n_assets
         biased[np.argmax(mu)] += 0.5
         initial_guesses.append(biased)
         
+        best_result = None
         for x0 in initial_guesses:
             # Clip to bounds and re-normalize
             x0 = np.clip(x0, 0, max_weight)
@@ -154,10 +186,19 @@ class MarkowitzOptimizer:
         
         problem = cp.Problem(objective, constraint_list)
         problem.solve()
-        
+
+        # Phase 1 Fix #3: Guard against solver failure — w.value is None when
+        # CVXPY fails (numerical issues, infeasible problem, etc.).
+        # Propagating None silently would create an all-NaN weight Series.
+        if problem.status not in ('optimal', 'optimal_inaccurate') or w.value is None:
+            raise RuntimeError(
+                f"Min-variance solver failed (status='{problem.status}'). "
+                "Try using fewer stocks or enabling 'Use Real Market Data'."
+            )
+
         self.weights = pd.Series(w.value, index=returns.columns)
         self._calculate_performance(returns, self.weights)
-        
+
         return self.weights
     
     def optimize_target_return(
@@ -202,10 +243,19 @@ class MarkowitzOptimizer:
         
         problem = cp.Problem(objective, constraint_list)
         problem.solve()
-        
+
+        # Phase 1 Fix #4: Same NaN guard for optimize_target_return.
+        # Called in a loop by generate_efficient_frontier — raise so the
+        # caller can gracefully skip infeasible frontier points.
+        if problem.status not in ('optimal', 'optimal_inaccurate') or w.value is None:
+            raise RuntimeError(
+                f"Target-return solver failed (status='{problem.status}', "
+                f"target={target_return:.4f}). This target may be infeasible."
+            )
+
         self.weights = pd.Series(w.value, index=returns.columns)
         self._calculate_performance(returns, self.weights)
-        
+
         return self.weights.values
     
     def generate_efficient_frontier(
@@ -226,24 +276,36 @@ class MarkowitzOptimizer:
         mu = returns.mean() * 252
         min_return = mu.min()
         max_return = mu.max()
-        
+
         target_returns = np.linspace(min_return, max_return, n_points)
-        
+
         risks = []
         frontier_returns = []
         weights_list = []
-        
-        for target in target_returns:
-            try:
-                weights = self.optimize_target_return(returns, target)
-                risks.append(self.performance['annual_volatility'])
-                frontier_returns.append(self.performance['annual_return'])
-                weights_list.append(weights)
-            except Exception as e:
-                # Some target returns might be unfeasible, especially at the extremes
-                print(f"  Note: Could not solve for target return {target:.2%}: {e}")
-                continue
-        
+
+        # Phase 2 Fix #11: Save current optimizer state so the loop below
+        # doesn't corrupt self.weights / self.performance that the main app
+        # stored in session_state.  A fresh temporary optimizer is used for
+        # each frontier point; state is restored at the end regardless.
+        _saved_weights = self.weights
+        _saved_performance = self.performance
+        try:
+            tmp_opt = MarkowitzOptimizer(risk_free_rate=self.risk_free_rate)
+            for target in target_returns:
+                try:
+                    tmp_opt.optimize_target_return(returns, target)
+                    risks.append(tmp_opt.performance['annual_volatility'])
+                    frontier_returns.append(tmp_opt.performance['annual_return'])
+                    weights_list.append(tmp_opt.weights.values)
+                except Exception as e:
+                    # Some target returns might be infeasible, especially at the extremes
+                    print(f"  Note: Could not solve for target return {target:.2%}: {e}")
+                    continue
+        finally:
+            # Always restore original state
+            self.weights = _saved_weights
+            self.performance = _saved_performance
+
         return np.array(risks), np.array(frontier_returns), weights_list
     
     def _calculate_performance(self, returns: pd.DataFrame, weights: pd.Series):

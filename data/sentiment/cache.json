@@ -1,0 +1,1222 @@
+{
+  "55c85ad419534c8f8101801730ee3008": {
+    "label": "positive",
+    "score": 0.7180368900299072,
+    "sentiment_value": 0.7180368900299072
+  },
+  "20142bb194406a8571f6f22fc9b5a281": {
+    "label": "positive",
+    "score": 0.5118104219436646,
+    "sentiment_value": 0.5118104219436646
+  },
+  "3d0a92d6a3063164c756a1e6ceb6dec2": {
+    "label": "neutral",
+    "score": 0.9227684140205383,
+    "sentiment_value": 0.0
+  },
+  "927766e2bd436fb907b5a6f22fd794fb": {
+    "label": "positive",
+    "score": 0.7170628905296326,
+    "sentiment_value": 0.7170628905296326
+  },
+  "cf4c140d7667471717033bc418312dc9": {
+    "label": "negative",
+    "score": 0.9308432936668396,
+    "sentiment_value": -0.9308432936668396
+  },
+  "9b0721cb6b43fe3797b3477171d4b4e4": {
+    "label": "neutral",
+    "score": 0.552677571773529,
+    "sentiment_value": 0.0
+  },
+  "e3f993ae82ff5d3b40d5c636c7bfa842": {
+    "label": "neutral",
+    "score": 0.93099445104599,
+    "sentiment_value": 0.0
+  },
+  "392b593fc221253056d68d2b62b87746": {
+    "label": "neutral",
+    "score": 0.93194580078125,
+    "sentiment_value": 0.0
+  },
+  "ccee315f191939cb0408fbbfa6aeadec": {
+    "label": "neutral",
+    "score": 0.7632623910903931,
+    "sentiment_value": 0.0
+  },
+  "8d69a5b3ae1503ff786506dfb3e5c4a7": {
+    "label": "neutral",
+    "score": 0.9249862432479858,
+    "sentiment_value": 0.0
+  },
+  "93f977f48ea8540ad934432006b4cb63": {
+    "label": "neutral",
+    "score": 0.9443190693855286,
+    "sentiment_value": 0.0
+  },
+  "1f949cd0b8a0d20a0b3274dfed6ecb7b": {
+    "label": "positive",
+    "score": 0.568217396736145,
+    "sentiment_value": 0.568217396736145
+  },
+  "d80fdbe5cb94c32b7c60c287a05dc20c": {
+    "label": "neutral",
+    "score": 0.9126148819923401,
+    "sentiment_value": 0.0
+  },
+  "17db6519e34b1399b2c0e0b8c88ad015": {
+    "label": "positive",
+    "score": 0.444021612405777,
+    "sentiment_value": 0.444021612405777
+  },
+  "4cf722ad202c883f1c388205fba65521": {
+    "label": "neutral",
+    "score": 0.9042399525642395,
+    "sentiment_value": 0.0
+  },
+  "580a43e3ec2971d6b61806574ff5819b": {
+    "label": "neutral",
+    "score": 0.8034384846687317,
+    "sentiment_value": 0.0
+  },
+  "3d2f705eabea3f857df3f629fb6351dd": {
+    "label": "neutral",
+    "score": 0.5442385077476501,
+    "sentiment_value": 0.0
+  },
+  "a407a10c9f264205806b19aa3686be34": {
+    "label": "neutral",
+    "score": 0.6247482299804688,
+    "sentiment_value": 0.0
+  },
+  "7bee9ba23851540f4c47a42fa0fe3681": {
+    "label": "positive",
+    "score": 0.685268223285675,
+    "sentiment_value": 0.685268223285675
+  },
+  "c1e8fbcac66c1e160b030458df2d6895": {
+    "label": "neutral",
+    "score": 0.9299431443214417,
+    "sentiment_value": 0.0
+  },
+  "d15754086dae0cc181dda1a929e9db7b": {
+    "label": "neutral",
+    "score": 0.9242349863052368,
+    "sentiment_value": 0.0
+  },
+  "aa6cc6fb38893819220fe7b16a397655": {
+    "label": "neutral",
+    "score": 0.6259269714355469,
+    "sentiment_value": 0.0
+  },
+  "ee97df773f9989e650c7cb65d948a1d6": {
+    "label": "positive",
+    "score": 0.9424495697021484,
+    "sentiment_value": 0.9424495697021484
+  },
+  "4ab38794b2ae3fc134a700d1251416e9": {
+    "label": "neutral",
+    "score": 0.9102996587753296,
+    "sentiment_value": 0.0
+  },
+  "cc7e5721328caae19f677a5f11ca0b37": {
+    "label": "negative",
+    "score": 0.5855908393859863,
+    "sentiment_value": -0.5855908393859863
+  },
+  "b0ea3f525f1d82ea660f1601580f0b26": {
+    "label": "neutral",
+    "score": 0.8056625127792358,
+    "sentiment_value": 0.0
+  },
+  "f23de6adca87749a093dc76f5d3271cc": {
+    "label": "neutral",
+    "score": 0.8546484708786011,
+    "sentiment_value": 0.0
+  },
+  "5460c4fd9a79b3172fed8ac61b19c673": {
+    "label": "positive",
+    "score": 0.5796491503715515,
+    "sentiment_value": 0.5796491503715515
+  },
+  "59bac671cb3149fcfb59836698ed7413": {
+    "label": "positive",
+    "score": 0.7409241199493408,
+    "sentiment_value": 0.7409241199493408
+  },
+  "d74961424ea396f54046a656f18c165f": {
+    "label": "neutral",
+    "score": 0.8729480504989624,
+    "sentiment_value": 0.0
+  },
+  "2d92acf44ad7a7dd0ef8016cd10b1d01": {
+    "label": "positive",
+    "score": 0.8624776601791382,
+    "sentiment_value": 0.8624776601791382
+  },
+  "ba4744245fde8aa3834b4e03fa64cd0e": {
+    "label": "positive",
+    "score": 0.8342757225036621,
+    "sentiment_value": 0.8342757225036621
+  },
+  "f3104fdeb45e30737e755cafd6493812": {
+    "label": "neutral",
+    "score": 0.9205989241600037,
+    "sentiment_value": 0.0
+  },
+  "af0d6ee2a06dd60a7b115a15770eb1c8": {
+    "label": "positive",
+    "score": 0.541761577129364,
+    "sentiment_value": 0.541761577129364
+  },
+  "7dd9d7de310014162abc36ac8f17bb63": {
+    "label": "positive",
+    "score": 0.8323143720626831,
+    "sentiment_value": 0.8323143720626831
+  },
+  "089daeedf4bfdd7bdd3d64c8c9311cd9": {
+    "label": "neutral",
+    "score": 0.8869113326072693,
+    "sentiment_value": 0.0
+  },
+  "8a257d9eaccc30ec82b74da535454c78": {
+    "label": "negative",
+    "score": 0.916192889213562,
+    "sentiment_value": -0.916192889213562
+  },
+  "33e6729cd10866e7cda16ee5f4cac486": {
+    "label": "neutral",
+    "score": 0.6229189038276672,
+    "sentiment_value": 0.0
+  },
+  "b022ca39d18b206c26bb426c2334d2c5": {
+    "label": "negative",
+    "score": 0.7615466713905334,
+    "sentiment_value": -0.7615466713905334
+  },
+  "141c90a66d81857dd800549e6ca31021": {
+    "label": "neutral",
+    "score": 0.4384482800960541,
+    "sentiment_value": 0.0
+  },
+  "11ad5d8778df9c7624d45f4a60eda2d2": {
+    "label": "positive",
+    "score": 0.7441843152046204,
+    "sentiment_value": 0.7441843152046204
+  },
+  "e70a3d705ccf3fc219eb2ac949a3bdb5": {
+    "label": "neutral",
+    "score": 0.8051392436027527,
+    "sentiment_value": 0.0
+  },
+  "92b3bee0e4200fa1560e433da1a8c430": {
+    "label": "negative",
+    "score": 0.8915270566940308,
+    "sentiment_value": -0.8915270566940308
+  },
+  "82dbe1f3eb69076ba4510af3732f5f6b": {
+    "label": "neutral",
+    "score": 0.9358405470848083,
+    "sentiment_value": 0.0
+  },
+  "72963d1099d179de4df773228c65e7c0": {
+    "label": "positive",
+    "score": 0.6246415376663208,
+    "sentiment_value": 0.6246415376663208
+  },
+  "02b2cad0ca691ab88af321420a06434c": {
+    "label": "neutral",
+    "score": 0.8883848786354065,
+    "sentiment_value": 0.0
+  },
+  "3aaa4b5202079dc73f26ef102075591a": {
+    "label": "negative",
+    "score": 0.9403086304664612,
+    "sentiment_value": -0.9403086304664612
+  },
+  "871fb1762e52f2f348e6aee11f151521": {
+    "label": "neutral",
+    "score": 0.618380069732666,
+    "sentiment_value": 0.0
+  },
+  "c85ce05d3c379ef8644787fbf035d977": {
+    "label": "negative",
+    "score": 0.9389234781265259,
+    "sentiment_value": -0.9389234781265259
+  },
+  "075c8c1bf059a18a422c9292167b74ab": {
+    "label": "neutral",
+    "score": 0.7522194385528564,
+    "sentiment_value": 0.0
+  },
+  "dc1e56a335ea31158c0641f314e5f055": {
+    "label": "neutral",
+    "score": 0.7310237288475037,
+    "sentiment_value": 0.0
+  },
+  "4ea3ca486f65a676b6eecb7d696457cf": {
+    "label": "negative",
+    "score": 0.9403944611549377,
+    "sentiment_value": -0.9403944611549377
+  },
+  "5ea22d771c37a1c522466374488dfa34": {
+    "label": "neutral",
+    "score": 0.8992621898651123,
+    "sentiment_value": 0.0
+  },
+  "2fe2384a8f89a015ad6fbd145e1a4c36": {
+    "label": "neutral",
+    "score": 0.9350468516349792,
+    "sentiment_value": 0.0
+  },
+  "2e8c0e02583b33c76a9c8f4a47d4236d": {
+    "label": "neutral",
+    "score": 0.8395376205444336,
+    "sentiment_value": 0.0
+  },
+  "bb42fedb0655a483f33020288fecfba3": {
+    "label": "negative",
+    "score": 0.9523019790649414,
+    "sentiment_value": -0.9523019790649414
+  },
+  "457f7afb14f67149e129820a9a79ec48": {
+    "label": "neutral",
+    "score": 0.9391154050827026,
+    "sentiment_value": 0.0
+  },
+  "55a9380b3012c2ffd10ae75fe9333175": {
+    "label": "negative",
+    "score": 0.658205509185791,
+    "sentiment_value": -0.658205509185791
+  },
+  "72d7d60fe62867ee9682dd3dec03567f": {
+    "label": "negative",
+    "score": 0.9320116639137268,
+    "sentiment_value": -0.9320116639137268
+  },
+  "1c3051bd612ba0cb35faf2607b097d0e": {
+    "label": "negative",
+    "score": 0.9077321887016296,
+    "sentiment_value": -0.9077321887016296
+  },
+  "bc2c815a735141af26f246af3d180682": {
+    "label": "neutral",
+    "score": 0.9085793495178223,
+    "sentiment_value": 0.0
+  },
+  "10d6891315e449cb55db9501f659be99": {
+    "label": "neutral",
+    "score": 0.5466706156730652,
+    "sentiment_value": 0.0
+  },
+  "d0f98aced9a7b75bd11d04d747b98b7d": {
+    "label": "positive",
+    "score": 0.8754948973655701,
+    "sentiment_value": 0.8754948973655701
+  },
+  "29aaa221a8dd53d79da705311d3bac6d": {
+    "label": "neutral",
+    "score": 0.937111496925354,
+    "sentiment_value": 0.0
+  },
+  "15c28c3ac109ae5f6b229b8c758a9dec": {
+    "label": "neutral",
+    "score": 0.9384105801582336,
+    "sentiment_value": 0.0
+  },
+  "4afdfff23201a493a8588a80cb96a6c3": {
+    "label": "neutral",
+    "score": 0.9436250925064087,
+    "sentiment_value": 0.0
+  },
+  "117e049b313540bbdc14174008a6a14b": {
+    "label": "neutral",
+    "score": 0.9396383166313171,
+    "sentiment_value": 0.0
+  },
+  "449dc4729698df8919f2317a1be5981c": {
+    "label": "neutral",
+    "score": 0.9415974617004395,
+    "sentiment_value": 0.0
+  },
+  "a1a594ff79306d079e050a6b5db942aa": {
+    "label": "neutral",
+    "score": 0.947954535484314,
+    "sentiment_value": 0.0
+  },
+  "b3ca73fac0a3282f2c347d5e0bbb3270": {
+    "label": "neutral",
+    "score": 0.9438264966011047,
+    "sentiment_value": 0.0
+  },
+  "b590fcf99b1a237fd00c352ee35f12d4": {
+    "label": "neutral",
+    "score": 0.9399298429489136,
+    "sentiment_value": 0.0
+  },
+  "88cdc21aa55e927020d450b2565b83a6": {
+    "label": "neutral",
+    "score": 0.9364180564880371,
+    "sentiment_value": 0.0
+  },
+  "8ab2fecb8ab388f56cf393f8d00174a7": {
+    "label": "negative",
+    "score": 0.8276965022087097,
+    "sentiment_value": -0.8276965022087097
+  },
+  "44bdc0a8b36966350f17a26e871f88d5": {
+    "label": "neutral",
+    "score": 0.9291236996650696,
+    "sentiment_value": 0.0
+  },
+  "09d6c985b61acd2e4eb1ad140b5559c6": {
+    "label": "neutral",
+    "score": 0.9101428389549255,
+    "sentiment_value": 0.0
+  },
+  "5b5162bfe01d248ed077d34c4e4aee89": {
+    "label": "neutral",
+    "score": 0.9328434467315674,
+    "sentiment_value": 0.0
+  },
+  "9fd4c997f801d25669e4e654ae645012": {
+    "label": "positive",
+    "score": 0.5763823986053467,
+    "sentiment_value": 0.5763823986053467
+  },
+  "f55f682b5beaa7168ef697f0f0a614d6": {
+    "label": "neutral",
+    "score": 0.8973428606987,
+    "sentiment_value": 0.0
+  },
+  "c514d705c85ad70d893306e317d08164": {
+    "label": "neutral",
+    "score": 0.9307708740234375,
+    "sentiment_value": 0.0
+  },
+  "978ba749276c108c5e709496f51153f1": {
+    "label": "positive",
+    "score": 0.7411348223686218,
+    "sentiment_value": 0.7411348223686218
+  },
+  "32ae7e4a71a6d649eb9cab125f6fbde6": {
+    "label": "neutral",
+    "score": 0.9067255854606628,
+    "sentiment_value": 0.0
+  },
+  "405e43350f76d045a25bda3dd72db7a0": {
+    "label": "neutral",
+    "score": 0.7853544354438782,
+    "sentiment_value": 0.0
+  },
+  "9ea2e2a81bb9226b740f2e7d93431b63": {
+    "label": "positive",
+    "score": 0.6681059002876282,
+    "sentiment_value": 0.6681059002876282
+  },
+  "da5a3ac3e4502e54239eaf8778bb6a85": {
+    "label": "neutral",
+    "score": 0.9357694387435913,
+    "sentiment_value": 0.0
+  },
+  "d35413dbee17821fe1aff08c11ac2334": {
+    "label": "neutral",
+    "score": 0.9334527850151062,
+    "sentiment_value": 0.0
+  },
+  "e1364771ec10dc00188621d527a1e81f": {
+    "label": "neutral",
+    "score": 0.9312980771064758,
+    "sentiment_value": 0.0
+  },
+  "9f8efe934bd158d9e8cd4707e510208a": {
+    "label": "negative",
+    "score": 0.5495244264602661,
+    "sentiment_value": -0.5495244264602661
+  },
+  "15cfffcd92b6783c341ec4a18422d5dc": {
+    "label": "neutral",
+    "score": 0.8220488429069519,
+    "sentiment_value": 0.0
+  },
+  "5d147232f135fb5c0ae2a14b585f061c": {
+    "label": "neutral",
+    "score": 0.8540436625480652,
+    "sentiment_value": 0.0
+  },
+  "0a52c67dd0a1c70846e4f75be34606d3": {
+    "label": "neutral",
+    "score": 0.8670977354049683,
+    "sentiment_value": 0.0
+  },
+  "7ad7334f465e62d81ea4db35745da6b5": {
+    "label": "neutral",
+    "score": 0.7600139379501343,
+    "sentiment_value": 0.0
+  },
+  "59d789e4992858508c85b48a00829551": {
+    "label": "neutral",
+    "score": 0.8914225697517395,
+    "sentiment_value": 0.0
+  },
+  "41ee8d57f535973acc96d3921c097898": {
+    "label": "neutral",
+    "score": 0.9273005127906799,
+    "sentiment_value": 0.0
+  },
+  "c26678bf8d7ab6f43fe283c4ccbe62e7": {
+    "label": "neutral",
+    "score": 0.8431928753852844,
+    "sentiment_value": 0.0
+  },
+  "b6064ad7c0d92045ade6d553b30dc8dd": {
+    "label": "negative",
+    "score": 0.6991398930549622,
+    "sentiment_value": -0.6991398930549622
+  },
+  "f907ec957838622d3d8c9b408738c935": {
+    "label": "negative",
+    "score": 0.7367236614227295,
+    "sentiment_value": -0.7367236614227295
+  },
+  "36c1ad127000eb5f0e0ccbc13788fa75": {
+    "label": "negative",
+    "score": 0.6602622270584106,
+    "sentiment_value": -0.6602622270584106
+  },
+  "fe9e0511a067a81680266351e2337d9f": {
+    "label": "negative",
+    "score": 0.5844708681106567,
+    "sentiment_value": -0.5844708681106567
+  },
+  "c125e51aaa4541638c435b7b772fb699": {
+    "label": "neutral",
+    "score": 0.9024762511253357,
+    "sentiment_value": 0.0
+  },
+  "a76429145de0606982ea93e6463e50fe": {
+    "label": "negative",
+    "score": 0.8113493323326111,
+    "sentiment_value": -0.8113493323326111
+  },
+  "eb43ca4ffc7514e3e013ed07c60ae088": {
+    "label": "neutral",
+    "score": 0.8716832399368286,
+    "sentiment_value": 0.0
+  },
+  "5b0aa06d75779bbc7010471a6d150b0f": {
+    "label": "neutral",
+    "score": 0.8852665424346924,
+    "sentiment_value": 0.0
+  },
+  "7a10ffa5baf951df4d11495319334caa": {
+    "label": "positive",
+    "score": 0.8202234506607056,
+    "sentiment_value": 0.8202234506607056
+  },
+  "3136c140c53bad0c8a4aea8ce713314e": {
+    "label": "positive",
+    "score": 0.7623342275619507,
+    "sentiment_value": 0.7623342275619507
+  },
+  "bb9b9446bd6fe11cd9d09aa86a7dfd9c": {
+    "label": "neutral",
+    "score": 0.6802961230278015,
+    "sentiment_value": 0.0
+  },
+  "1a412fb2606f3f1f4a77817ea22a514a": {
+    "label": "positive",
+    "score": 0.6064949631690979,
+    "sentiment_value": 0.6064949631690979
+  },
+  "1057da4d097d49efe4cd228937264fdb": {
+    "label": "negative",
+    "score": 0.774359941482544,
+    "sentiment_value": -0.774359941482544
+  },
+  "a9a69e51d1a0b172dccb3e28679ec208": {
+    "label": "neutral",
+    "score": 0.9427728652954102,
+    "sentiment_value": 0.0
+  },
+  "f3ff5abfaa5bafd8c28437984edac552": {
+    "label": "positive",
+    "score": 0.7999433875083923,
+    "sentiment_value": 0.7999433875083923
+  },
+  "b064be9533c6fc40c37e0d4ea2d8ab03": {
+    "label": "negative",
+    "score": 0.5912771821022034,
+    "sentiment_value": -0.5912771821022034
+  },
+  "0deb38b5cd910f526edd8b6169a946cb": {
+    "label": "neutral",
+    "score": 0.8702957034111023,
+    "sentiment_value": 0.0
+  },
+  "0cf6ef1ad8b5b19d977bcd8ddf5a7555": {
+    "label": "positive",
+    "score": 0.6546270251274109,
+    "sentiment_value": 0.6546270251274109
+  },
+  "e8575d4488856ce0d5e0a881b2f7a69b": {
+    "label": "neutral",
+    "score": 0.7968202233314514,
+    "sentiment_value": 0.0
+  },
+  "ae9f573a017536e2fa091f4213876916": {
+    "label": "neutral",
+    "score": 0.879892110824585,
+    "sentiment_value": 0.0
+  },
+  "a5aeee1fda6fdd85c20a669217cbff41": {
+    "label": "neutral",
+    "score": 0.9196485280990601,
+    "sentiment_value": 0.0
+  },
+  "945f7a139780d239efe7b6501b4672ba": {
+    "label": "negative",
+    "score": 0.7659415006637573,
+    "sentiment_value": -0.7659415006637573
+  },
+  "bf4871c76fcb87255009599adbea2d58": {
+    "label": "neutral",
+    "score": 0.9277249574661255,
+    "sentiment_value": 0.0
+  },
+  "c5bb7b4254cad00419a528c07044e6ab": {
+    "label": "neutral",
+    "score": 0.9209113121032715,
+    "sentiment_value": 0.0
+  },
+  "a0022316ee335b3c3450534813552973": {
+    "label": "negative",
+    "score": 0.9279029369354248,
+    "sentiment_value": -0.9279029369354248
+  },
+  "9db59efb320bcaf6f355fcffa58ab1a2": {
+    "label": "negative",
+    "score": 0.7013975381851196,
+    "sentiment_value": -0.7013975381851196
+  },
+  "f0324d4f113a77b7eb86313f23de2eea": {
+    "label": "negative",
+    "score": 0.9506317973136902,
+    "sentiment_value": -0.9506317973136902
+  },
+  "7113a3450e2ec24b893a1547ef98cfb7": {
+    "label": "positive",
+    "score": 0.90129554271698,
+    "sentiment_value": 0.90129554271698
+  },
+  "c3ba053086bc7169d700aaf0745b093a": {
+    "label": "neutral",
+    "score": 0.8913977146148682,
+    "sentiment_value": 0.0
+  },
+  "2b516b3a2bfc3c2e0de387a46ac4b2b9": {
+    "label": "positive",
+    "score": 0.9445229768753052,
+    "sentiment_value": 0.9445229768753052
+  },
+  "40bce8aed1748e36ae45317e7308847c": {
+    "label": "neutral",
+    "score": 0.6346272230148315,
+    "sentiment_value": 0.0
+  },
+  "cf25d75fc1996d929df4b7c2eaf66252": {
+    "label": "negative",
+    "score": 0.8999388217926025,
+    "sentiment_value": -0.8999388217926025
+  },
+  "0e28a1cb57944cab0e4a0ddca8180c54": {
+    "label": "positive",
+    "score": 0.5965123176574707,
+    "sentiment_value": 0.5965123176574707
+  },
+  "507279aa2c4e3446fd5d321ff49d1314": {
+    "label": "positive",
+    "score": 0.9159724712371826,
+    "sentiment_value": 0.9159724712371826
+  },
+  "fb7d1f83ab3b1b8be7ebab145de0d257": {
+    "label": "neutral",
+    "score": 0.9151785373687744,
+    "sentiment_value": 0.0
+  },
+  "11b9e0c4e4bc2563dc868ff48ffc6b4e": {
+    "label": "negative",
+    "score": 0.4884926676750183,
+    "sentiment_value": -0.4884926676750183
+  },
+  "8d976697315d2fe1789c5289839807c1": {
+    "label": "neutral",
+    "score": 0.9362009763717651,
+    "sentiment_value": 0.0
+  },
+  "46cde27db5baeb0c3a2ef7b28b4b3775": {
+    "label": "neutral",
+    "score": 0.8789655566215515,
+    "sentiment_value": 0.0
+  },
+  "606b996ed5b9bca642123b1f51db376f": {
+    "label": "positive",
+    "score": 0.8465314507484436,
+    "sentiment_value": 0.8465314507484436
+  },
+  "51b94c5c854f70e93e816db9e6aebef6": {
+    "label": "neutral",
+    "score": 0.9321478009223938,
+    "sentiment_value": 0.0
+  },
+  "6fcb6e3ac6d33e402198dfd82cfbf5a2": {
+    "label": "neutral",
+    "score": 0.9341784119606018,
+    "sentiment_value": 0.0
+  },
+  "0010ce60841c7cb9ef21f55262d06cb8": {
+    "label": "neutral",
+    "score": 0.7692217826843262,
+    "sentiment_value": 0.0
+  },
+  "0227bf8e51e5dbc5c52e63c5d11cfbe0": {
+    "label": "negative",
+    "score": 0.8562453985214233,
+    "sentiment_value": -0.8562453985214233
+  },
+  "196298502db3109c334695b37c90267f": {
+    "label": "positive",
+    "score": 0.5160284042358398,
+    "sentiment_value": 0.5160284042358398
+  },
+  "d98aeb5ff2b0cd8d949ea96927b5fa54": {
+    "label": "positive",
+    "score": 0.9553436636924744,
+    "sentiment_value": 0.9553436636924744
+  },
+  "e6bd572db32667597ed592aeb54a0d12": {
+    "label": "neutral",
+    "score": 0.8491963744163513,
+    "sentiment_value": 0.0
+  },
+  "1fbf75a8b7f50baf3ed3ca189fd3f6ca": {
+    "label": "neutral",
+    "score": 0.9477323889732361,
+    "sentiment_value": 0.0
+  },
+  "cbd57c7775b83a67eb30c40105798786": {
+    "label": "neutral",
+    "score": 0.9018826484680176,
+    "sentiment_value": 0.0
+  },
+  "0d89549e7a061d120e36cde67a99ed9d": {
+    "label": "neutral",
+    "score": 0.9290913939476013,
+    "sentiment_value": 0.0
+  },
+  "4ec223bdd278cbf6b43964c4090bedb3": {
+    "label": "positive",
+    "score": 0.5591176748275757,
+    "sentiment_value": 0.5591176748275757
+  },
+  "5c8ca6014885756009e4aec6d6ebd5ac": {
+    "label": "negative",
+    "score": 0.6816645860671997,
+    "sentiment_value": -0.6816645860671997
+  },
+  "94ee1e912f94efb5c3ee97caf9f4a926": {
+    "label": "neutral",
+    "score": 0.9064646363258362,
+    "sentiment_value": 0.0
+  },
+  "81286b18ff3c7432cbd0e2ce123f0bc0": {
+    "label": "positive",
+    "score": 0.8651958703994751,
+    "sentiment_value": 0.8651958703994751
+  },
+  "8e4d0d5d6222098c0d0e15d502481ff2": {
+    "label": "neutral",
+    "score": 0.866621196269989,
+    "sentiment_value": 0.0
+  },
+  "797d8d50fca9458badc94cde7c4ae33a": {
+    "label": "neutral",
+    "score": 0.9269957542419434,
+    "sentiment_value": 0.0
+  },
+  "55292d2fe5dbce4c9d47e7f5a5bbbe44": {
+    "label": "neutral",
+    "score": 0.9169805645942688,
+    "sentiment_value": 0.0
+  },
+  "9b387a3dbbad836cafb65d50b6f999a8": {
+    "label": "neutral",
+    "score": 0.9348890781402588,
+    "sentiment_value": 0.0
+  },
+  "7682b17486f1e88606d5d565eca130ba": {
+    "label": "positive",
+    "score": 0.904576301574707,
+    "sentiment_value": 0.904576301574707
+  },
+  "0ce687c972e4c5a4715f3cfe9616d1fe": {
+    "label": "negative",
+    "score": 0.922858476638794,
+    "sentiment_value": -0.922858476638794
+  },
+  "d426174c27de9bac127796dce55c0e6e": {
+    "label": "neutral",
+    "score": 0.8841784596443176,
+    "sentiment_value": 0.0
+  },
+  "2968679bf131867b82beb7e88d8da6c9": {
+    "label": "neutral",
+    "score": 0.8983882665634155,
+    "sentiment_value": 0.0
+  },
+  "ba2216c875945937db2d4b06e8815951": {
+    "label": "neutral",
+    "score": 0.9465174078941345,
+    "sentiment_value": 0.0
+  },
+  "c88b68387796270d1bcb5baa45d4f244": {
+    "label": "neutral",
+    "score": 0.801128625869751,
+    "sentiment_value": 0.0
+  },
+  "917322c766a5b2cd9a403fb884bfc9b0": {
+    "label": "negative",
+    "score": 0.9128595590591431,
+    "sentiment_value": -0.9128595590591431
+  },
+  "cefdf3fa1ab8a0d0a948838844b972e9": {
+    "label": "neutral",
+    "score": 0.6125057339668274,
+    "sentiment_value": 0.0
+  },
+  "9e2430910a1ba146279a32e144512144": {
+    "label": "neutral",
+    "score": 0.7531061768531799,
+    "sentiment_value": 0.0
+  },
+  "fe752350daf9715bf5af81f9c953b854": {
+    "label": "negative",
+    "score": 0.744014322757721,
+    "sentiment_value": -0.744014322757721
+  },
+  "9d1d0fbb2d247da4bf12d26afa2857b2": {
+    "label": "positive",
+    "score": 0.9094530940055847,
+    "sentiment_value": 0.9094530940055847
+  },
+  "2db6f987dace8ee59db9ee8b25040d8b": {
+    "label": "neutral",
+    "score": 0.7579761743545532,
+    "sentiment_value": 0.0
+  },
+  "dfc2dae0f5e524e9d51010e8410609fb": {
+    "label": "negative",
+    "score": 0.9472712874412537,
+    "sentiment_value": -0.9472712874412537
+  },
+  "f43a93abcd5ca3cef65dbb595a52ef26": {
+    "label": "neutral",
+    "score": 0.942106306552887,
+    "sentiment_value": 0.0
+  },
+  "16d2a51a7cda9c6de59d283e2d5d9eb8": {
+    "label": "neutral",
+    "score": 0.6895092129707336,
+    "sentiment_value": 0.0
+  },
+  "11ab922fbdc3a01f7e3c5c311b22829e": {
+    "label": "neutral",
+    "score": 0.8760684728622437,
+    "sentiment_value": 0.0
+  },
+  "4262f589c347d52e76cd87b6c38b6b4a": {
+    "label": "neutral",
+    "score": 0.9287880063056946,
+    "sentiment_value": 0.0
+  },
+  "c4b865fee8245f95a6cbb82756f71566": {
+    "label": "negative",
+    "score": 0.5754797458648682,
+    "sentiment_value": -0.5754797458648682
+  },
+  "c067d4ebc669ae4d884337b73f464d64": {
+    "label": "neutral",
+    "score": 0.9209200143814087,
+    "sentiment_value": 0.0
+  },
+  "2a6366f0a8448bf7da95c9fd59e5c53e": {
+    "label": "neutral",
+    "score": 0.9196820855140686,
+    "sentiment_value": 0.0
+  },
+  "5d3fe6399ec02e0be427dbd105dcbfae": {
+    "label": "positive",
+    "score": 0.8118780255317688,
+    "sentiment_value": 0.8118780255317688
+  },
+  "12235131c38f64751f5a5229129641f6": {
+    "label": "neutral",
+    "score": 0.8239214420318604,
+    "sentiment_value": 0.0
+  },
+  "a854c6c974ec916716efb00e80f1a637": {
+    "label": "neutral",
+    "score": 0.821533203125,
+    "sentiment_value": 0.0
+  },
+  "024e78f9f92a2a5d5fe6d568e574faf9": {
+    "label": "neutral",
+    "score": 0.7957435846328735,
+    "sentiment_value": 0.0
+  },
+  "8c69a22ec91ad27a6ceb14aa4bb01d52": {
+    "label": "neutral",
+    "score": 0.8973879814147949,
+    "sentiment_value": 0.0
+  },
+  "1e2a26af17a3505836368f3f3d038f58": {
+    "label": "neutral",
+    "score": 0.8683170676231384,
+    "sentiment_value": 0.0
+  },
+  "7d75a3a86366a1ab93592b74e8127703": {
+    "label": "neutral",
+    "score": 0.6494171023368835,
+    "sentiment_value": 0.0
+  },
+  "cad0740248c8da3c3b4e367274f0f3c8": {
+    "label": "neutral",
+    "score": 0.922106146812439,
+    "sentiment_value": 0.0
+  },
+  "9132b7e41649b8b229c488ad4f5b1bb9": {
+    "label": "neutral",
+    "score": 0.9246154427528381,
+    "sentiment_value": 0.0
+  },
+  "9c60f3381fb0728c96e84d39030e9caf": {
+    "label": "neutral",
+    "score": 0.767730712890625,
+    "sentiment_value": 0.0
+  },
+  "ad8e210466b01351bbbdbf6a405d92c9": {
+    "label": "neutral",
+    "score": 0.9146743416786194,
+    "sentiment_value": 0.0
+  },
+  "67de9526ab6df34baefb330d4e100523": {
+    "label": "neutral",
+    "score": 0.9018586874008179,
+    "sentiment_value": 0.0
+  },
+  "29f4c4f9afcd1f67d43a34e5fc96e81b": {
+    "label": "negative",
+    "score": 0.9083102941513062,
+    "sentiment_value": -0.9083102941513062
+  },
+  "63c97265aba96efbdb9ab96f901d6cd8": {
+    "label": "neutral",
+    "score": 0.9017017483711243,
+    "sentiment_value": 0.0
+  },
+  "9ed13e63e4e860266c66854ab2fcfac7": {
+    "label": "neutral",
+    "score": 0.950154721736908,
+    "sentiment_value": 0.0
+  },
+  "ff03b8930f8fb9b2521922568b25d3e8": {
+    "label": "neutral",
+    "score": 0.865729033946991,
+    "sentiment_value": 0.0
+  },
+  "c671b0264b08f98cfb71bc8c16ac7878": {
+    "label": "neutral",
+    "score": 0.9459810256958008,
+    "sentiment_value": 0.0
+  },
+  "a75584bc81858a9a14cf09aae4ebe76a": {
+    "label": "neutral",
+    "score": 0.9333260655403137,
+    "sentiment_value": 0.0
+  },
+  "97b2e4f1aa8a706f438e1bd4acde94ec": {
+    "label": "negative",
+    "score": 0.7455111742019653,
+    "sentiment_value": -0.7455111742019653
+  },
+  "3711b2361d3ffb94e4773f80b3b95fcf": {
+    "label": "neutral",
+    "score": 0.6980770230293274,
+    "sentiment_value": 0.0
+  },
+  "b0f29ea981e076adf266dd76233b9342": {
+    "label": "negative",
+    "score": 0.7726531028747559,
+    "sentiment_value": -0.7726531028747559
+  },
+  "341fb18b8e6bfc57ecbf89c1260239f4": {
+    "label": "neutral",
+    "score": 0.7203493714332581,
+    "sentiment_value": 0.0
+  },
+  "e201fd5428f843eabcd851b96615ff82": {
+    "label": "neutral",
+    "score": 0.9351372718811035,
+    "sentiment_value": 0.0
+  },
+  "3e622fcb72fd7d6066fcf72052984278": {
+    "label": "neutral",
+    "score": 0.9191140532493591,
+    "sentiment_value": 0.0
+  },
+  "ac5981df1a75a8b8e6a492f9630cba94": {
+    "label": "neutral",
+    "score": 0.694518506526947,
+    "sentiment_value": 0.0
+  },
+  "607f7f32eaea1b57a6c84b735744174f": {
+    "label": "neutral",
+    "score": 0.8240301012992859,
+    "sentiment_value": 0.0
+  },
+  "b3226f9538e9b9a0b3dbb77db1263b64": {
+    "label": "neutral",
+    "score": 0.9276967644691467,
+    "sentiment_value": 0.0
+  },
+  "d95c8472a44b901f908fa587d7b0195d": {
+    "label": "neutral",
+    "score": 0.9503601789474487,
+    "sentiment_value": 0.0
+  },
+  "cc28d3d326dc99d1b9e29a70deecddf9": {
+    "label": "neutral",
+    "score": 0.7562020421028137,
+    "sentiment_value": 0.0
+  },
+  "a11863f298b69fbc658cf6ea11ad4549": {
+    "label": "neutral",
+    "score": 0.9138292670249939,
+    "sentiment_value": 0.0
+  },
+  "01971da89d089b9fb35c1a4090040004": {
+    "label": "neutral",
+    "score": 0.6248789429664612,
+    "sentiment_value": 0.0
+  },
+  "cab049b50f864b310523df7ca82533fc": {
+    "label": "neutral",
+    "score": 0.9261846542358398,
+    "sentiment_value": 0.0
+  },
+  "53defbacd4bfd23ea94ec587259b87bb": {
+    "label": "neutral",
+    "score": 0.7322756052017212,
+    "sentiment_value": 0.0
+  },
+  "b4e0862b7f9b8530e0eb177813a98db4": {
+    "label": "neutral",
+    "score": 0.6313633322715759,
+    "sentiment_value": 0.0
+  },
+  "a5a9dcb1d616e3bc5c56f25bb2b5db2e": {
+    "label": "neutral",
+    "score": 0.8158658742904663,
+    "sentiment_value": 0.0
+  },
+  "d168f5c8af59d562b8ed24941b165760": {
+    "label": "neutral",
+    "score": 0.8819618225097656,
+    "sentiment_value": 0.0
+  },
+  "d287b62fa8b8724e9042a382805b12e6": {
+    "label": "neutral",
+    "score": 0.9157888889312744,
+    "sentiment_value": 0.0
+  },
+  "319cf54cb6b7e1a855e0fabc9c945493": {
+    "label": "neutral",
+    "score": 0.5867559313774109,
+    "sentiment_value": 0.0
+  },
+  "e5669896116f4541b6ba977e49f7e6fa": {
+    "label": "neutral",
+    "score": 0.7235583066940308,
+    "sentiment_value": 0.0
+  },
+  "49f397a10062c3280d59f6255e0ced2b": {
+    "label": "neutral",
+    "score": 0.8857959508895874,
+    "sentiment_value": 0.0
+  },
+  "cd51937bbcfbb6002ea2d8e7203975ce": {
+    "label": "neutral",
+    "score": 0.9415892362594604,
+    "sentiment_value": 0.0
+  },
+  "c64b76b76a735575346bd50a1925104e": {
+    "label": "neutral",
+    "score": 0.9091073274612427,
+    "sentiment_value": 0.0
+  },
+  "655ffe35f0d0c3775cb2fa3b8f10c9c8": {
+    "label": "neutral",
+    "score": 0.7532859444618225,
+    "sentiment_value": 0.0
+  },
+  "fb85ed5f8f1bec5e47fd5754fdab17ae": {
+    "label": "neutral",
+    "score": 0.7031357884407043,
+    "sentiment_value": 0.0
+  },
+  "7f24e9ba8c10b485454601db6769463b": {
+    "label": "positive",
+    "score": 0.521070122718811,
+    "sentiment_value": 0.521070122718811
+  },
+  "0b721550014747cffc5859790d4be7c1": {
+    "label": "neutral",
+    "score": 0.8409348726272583,
+    "sentiment_value": 0.0
+  },
+  "1d9c04bd54a88b79965180121a2923e9": {
+    "label": "neutral",
+    "score": 0.9310799837112427,
+    "sentiment_value": 0.0
+  },
+  "d15ce0a006b87a201e108e5a4b9ccab7": {
+    "label": "neutral",
+    "score": 0.8178719282150269,
+    "sentiment_value": 0.0
+  },
+  "36bec786b1156319d1125e4b519557c6": {
+    "label": "neutral",
+    "score": 0.4942294657230377,
+    "sentiment_value": 0.0
+  },
+  "3350b638a1c00955eb944831eca9848c": {
+    "label": "positive",
+    "score": 0.5136558413505554,
+    "sentiment_value": 0.5136558413505554
+  },
+  "ccd2ebf1e25bc0988c0ff3388bf00941": {
+    "label": "negative",
+    "score": 0.5165577530860901,
+    "sentiment_value": -0.5165577530860901
+  },
+  "2ae54194d6acd075a2d76de154bace08": {
+    "label": "positive",
+    "score": 0.6280853152275085,
+    "sentiment_value": 0.6280853152275085
+  },
+  "23b7bd56ad2affc33720a99bc9a67f00": {
+    "label": "neutral",
+    "score": 0.9317364692687988,
+    "sentiment_value": 0.0
+  },
+  "f800f1cc18f99c3efd85dc9a95cd60c4": {
+    "label": "neutral",
+    "score": 0.7905666828155518,
+    "sentiment_value": 0.0
+  },
+  "b9ee99b626d6fe616f46ccd1c68f779e": {
+    "label": "neutral",
+    "score": 0.6100462675094604,
+    "sentiment_value": 0.0
+  },
+  "33419b404958d871720b6ec297570aa0": {
+    "label": "neutral",
+    "score": 0.8909558057785034,
+    "sentiment_value": 0.0
+  },
+  "87616b708f22c139ecc33a6dc0acaca2": {
+    "label": "neutral",
+    "score": 0.7630273103713989,
+    "sentiment_value": 0.0
+  },
+  "f97bf2f57d6fd5860090db79afd283a8": {
+    "label": "neutral",
+    "score": 0.8558281660079956,
+    "sentiment_value": 0.0
+  },
+  "62e9b181ef95d4b69c7171b99837212e": {
+    "label": "neutral",
+    "score": 0.6628468632698059,
+    "sentiment_value": 0.0
+  },
+  "4e6f731eccb34244bec4c34fc448b80b": {
+    "label": "neutral",
+    "score": 0.916473925113678,
+    "sentiment_value": 0.0
+  },
+  "81b34307d24ffd5dc5157af5a8732261": {
+    "label": "neutral",
+    "score": 0.9290523529052734,
+    "sentiment_value": 0.0
+  },
+  "6441184d744c2d696f727af12368c4f7": {
+    "label": "neutral",
+    "score": 0.8584673404693604,
+    "sentiment_value": 0.0
+  },
+  "a21c64f242261e1d5115f93a7353c4a1": {
+    "label": "neutral",
+    "score": 0.6993836760520935,
+    "sentiment_value": 0.0
+  },
+  "dd763c22e88e329c3f082f6d666aba7a": {
+    "label": "negative",
+    "score": 0.5333623886108398,
+    "sentiment_value": -0.5333623886108398
+  },
+  "78072a821db6b0d83c6b07f13b21ffbb": {
+    "label": "negative",
+    "score": 0.7119186520576477,
+    "sentiment_value": -0.7119186520576477
+  },
+  "1a42921543fbca0ad1d92c87e5cd440a": {
+    "label": "neutral",
+    "score": 0.7799694538116455,
+    "sentiment_value": 0.0
+  },
+  "f43b819b17296c3bdb76b3c26683219c": {
+    "label": "neutral",
+    "score": 0.884458601474762,
+    "sentiment_value": 0.0
+  },
+  "51425bf6389d486cbcd8ed4f8ef7612c": {
+    "label": "neutral",
+    "score": 0.5095522403717041,
+    "sentiment_value": 0.0
+  },
+  "99a3691febe92547f2c4bf6a4af4b020": {
+    "label": "negative",
+    "score": 0.6250225305557251,
+    "sentiment_value": -0.6250225305557251
+  },
+  "a84c112c7801acb6f8040f2a63f71c9d": {
+    "label": "negative",
+    "score": 0.764034628868103,
+    "sentiment_value": -0.764034628868103
+  },
+  "7582a0d95d6299d696441b02beb3c06d": {
+    "label": "neutral",
+    "score": 0.9272567629814148,
+    "sentiment_value": 0.0
+  },
+  "2b3f1ea9c93a2caba6c53b201132b284": {
+    "label": "negative",
+    "score": 0.5702617168426514,
+    "sentiment_value": -0.5702617168426514
+  },
+  "5c3a7df7cac9c73ac8d338cb4cf4832a": {
+    "label": "neutral",
+    "score": 0.8899229764938354,
+    "sentiment_value": 0.0
+  }
+}

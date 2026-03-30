@@ -5,7 +5,10 @@ Streamlit interface for hybrid quantum-classical portfolio optimization
 
 import streamlit as st
 import sys
-sys.path.append('src')
+import os
+# Phase 4/5 Fix #19: Use an absolute path so the app works regardless of the
+# current working directory (not just when run from project root).
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
 
 import numpy as np
 import pandas as pd
@@ -225,9 +228,77 @@ risk_free_rate = st.sidebar.slider(
 
 optimization_method = st.sidebar.radio(
     "Optimization Method",
-    ["Minimum Variance", "Maximum Sharpe Ratio", "Sentiment-Aware (Phase 2)"],
-    help="Choose the portfolio optimization strategy"
+    [
+        "Minimum Variance",
+        "Maximum Sharpe Ratio",
+        "Sentiment-Aware (Phase 2)",
+        "QAOA (Quantum)",
+        "Hybrid Sentiment-Quantum",
+    ],
+    help="Choose the portfolio optimization strategy. Quantum methods are limited to ≤10 stocks."
 )
+
+# ── Fix 2: Quantum stock-count guard shown in sidebar ────────────────────
+QUANTUM_METHODS = {"QAOA (Quantum)", "Hybrid Sentiment-Quantum"}
+if optimization_method in QUANTUM_METHODS:
+    if len(selected_tickers) > 10:
+        st.sidebar.error(
+            f"⚛️ Quantum methods support **≤ 10 stocks** (classical simulation is "
+            f"exponential). You have **{len(selected_tickers)}** selected. "
+            "Please choose a smaller preset or switch to a classical method."
+        )
+    else:
+        st.sidebar.info(
+            f"⚛️ QAOA will run on **{len(selected_tickers)} qubits** "
+            "(classical Aer simulator).  This may take 1–3 minutes."
+        )
+    with st.sidebar.expander("⚙️ QAOA Settings", expanded=False):
+        qaoa_layers = st.slider("QAOA Layers (p)", min_value=1, max_value=3, value=1)
+        qaoa_max_iter = st.slider("COBYLA Iterations", min_value=10, max_value=100, value=30)
+        qaoa_budget = st.slider(
+            "Stocks to Select (Budget)",
+            min_value=1,
+            max_value=min(10, len(selected_tickers)),
+            value=min(5, len(selected_tickers))
+        )
+
+        # ── IBM Quantum backend selector ──────────────────────────────────────
+        st.markdown("---")
+        st.markdown("**🖥️ Quantum Backend**")
+        qaoa_backend_mode = st.radio(
+            "Run on:",
+            options=["simulator", "ibm_real"],
+            format_func=lambda x: "🖥️ Local Simulator (fast, free)" if x == "simulator" else "☁️ IBM Quantum (real hardware)",
+            index=0,
+            key="qaoa_backend_mode",
+        )
+
+        ibm_backend_name_input = os.getenv("IBM_QUANTUM_BACKEND", "ibm_brisbane")
+        if qaoa_backend_mode == "ibm_real":
+            ibm_backend_name_input = st.text_input(
+                "IBM Backend name",
+                value=os.getenv("IBM_QUANTUM_BACKEND", "ibm_brisbane"),
+                help="e.g. ibm_brisbane, ibm_kyoto, ibmq_qasm_simulator"
+            )
+            _ibm_token = os.getenv("IBM_QUANTUM_TOKEN", "")
+            if not _ibm_token:
+                st.warning(
+                    "⚠️ IBM_QUANTUM_TOKEN not set in .env — "
+                    "will fall back to local simulator."
+                )
+            else:
+                st.success("✅ IBM token found — will connect to real QPU")
+                st.caption(
+                    "⏱️ Note: real hardware jobs may queue for 30–60 min. "
+                    "Each COBYLA iteration submits one circuit job."
+                )
+        # ────────────────────────────────────────────────────────────────────
+else:
+    qaoa_layers = 1
+    qaoa_max_iter = 30
+    qaoa_budget = min(5, len(selected_tickers))
+    qaoa_backend_mode = "simulator"
+    ibm_backend_name_input = os.getenv("IBM_QUANTUM_BACKEND", "ibm_brisbane")
 
 # Data Settings
 st.sidebar.subheader("📅 Data Configuration")
@@ -245,13 +316,15 @@ if use_real_data:
 else:
     lookback_days = 500  # Simulated data default
 
-# Sentiment Analysis (if applicable)
-if optimization_method == "Sentiment-Aware (Phase 2)":
+# Sentiment Settings — shown for both sentiment methods
+if optimization_method in ("Sentiment-Aware (Phase 2)", "Hybrid Sentiment-Quantum"):
     st.sidebar.subheader("🗞️ Sentiment Settings")
     news_api_key = st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", ""))
     
     if not news_api_key:
-        st.sidebar.warning("⚠️ NEWS_API_KEY not configured. Add it in Streamlit Cloud → Settings → Secrets (or in your local .env file).")
+        st.sidebar.info(
+            "ℹ️ No NEWS_API_KEY found — will try free Yahoo Finance RSS feeds as fallback."
+        )
     
     sentiment_weight = st.sidebar.slider(
         "Sentiment Weight",
@@ -267,6 +340,10 @@ if optimization_method == "Sentiment-Aware (Phase 2)":
         max_value=30,
         value=7
     )
+else:
+    news_api_key = ""
+    sentiment_weight = 0.3
+    news_lookback = 7
 
 # =====================================
 # Helper Functions
@@ -275,31 +352,41 @@ if optimization_method == "Sentiment-Aware (Phase 2)":
 @st.cache_data
 def generate_sample_returns(tickers, n_days=500):
     """Generate realistic sample returns for demo purposes"""
-    np.random.seed(42)
-    
+    # Phase 1 Fix #2: Use default_rng and ensure ≥2 factors to avoid rank-1
+    # correlation matrices when n_stocks is odd or very small.
+    rng = np.random.default_rng(42)
+
     n_stocks = len(tickers)
-    
+
     # Realistic parameters
-    expected_returns = np.random.uniform(0.10, 0.35, n_stocks)
-    volatilities = np.random.uniform(0.18, 0.60, n_stocks)
-    
+    expected_returns = rng.uniform(0.10, 0.35, n_stocks)
+    volatilities = rng.uniform(0.18, 0.60, n_stocks)
+
     daily_returns = expected_returns / 252
     daily_vols = volatilities / np.sqrt(252)
-    
-    # Create correlation matrix
-    L = np.random.randn(n_stocks, n_stocks // 2)
-    corr_matrix = np.corrcoef(L)
+
+    # Create a well-conditioned correlation matrix using at least 2 factors
+    # so the covariance is always positive-definite, even for small/odd portfolios.
+    n_factors = max(2, n_stocks // 2)
+    L = rng.standard_normal((n_stocks, n_factors))
+    cov_raw = L @ L.T
+    # Normalise to a proper correlation matrix
+    d = np.sqrt(np.diag(cov_raw))
+    corr_matrix = cov_raw / np.outer(d, d)
     np.fill_diagonal(corr_matrix, 1.0)
-    
+
     cov_matrix = np.outer(daily_vols, daily_vols) * corr_matrix
-    returns_array = np.random.multivariate_normal(daily_returns, cov_matrix, n_days)
-    
+    # Small regularization for numerical safety
+    cov_matrix += 1e-8 * np.eye(n_stocks)
+
+    returns_array = rng.multivariate_normal(daily_returns, cov_matrix, n_days)
+
     dates = pd.date_range(end=datetime.now(), periods=n_days, freq='B')
     returns = pd.DataFrame(returns_array, index=dates, columns=tickers)
-    
+
     return returns
 
-@st.cache_data
+@st.cache_data(ttl=3600)  # Phase 3 Fix #13: Cache real data for max 1 hour
 def fetch_real_returns(tickers, days=365):
     """Fetch real market data using yfinance"""
     try:
@@ -576,11 +663,15 @@ def _make_bar_chart(labels, values, colors, title, ylabel, fmt=None):
     for bar, v in zip(bars, values):
         txt = fmt(v) if fmt else f'{v:.3f}'
         ax.text(bar.get_x() + bar.get_width() / 2,
-                bar.get_height() + max(values) * 0.02,
+                bar.get_height() + max(abs(v) for v in values) * 0.02,
                 txt, ha='center', va='bottom', fontsize=10, fontweight='bold')
     ax.set_title(title, fontsize=12, fontweight='bold')
     ax.set_ylabel(ylabel, fontsize=10)
-    ax.set_ylim(0, max(values) * 1.22)
+    # Phase 3 Fix #15: Handle negative Sharpe: use a symmetric y-axis so bars
+    # pointing down (negative) are still readable instead of inverting the axis.
+    max_abs = max(abs(v) for v in values)
+    ax.set_ylim(-max_abs * 1.3 if any(v < 0 for v in values) else 0,
+                max_abs * 1.22)
     ax.grid(True, axis='y', alpha=0.3)
     ax.spines[['top', 'right']].set_visible(False)
     fig.tight_layout()
@@ -816,6 +907,15 @@ with tab1:
         if optimize_button or 'optimization_results' in st.session_state:
             
             with st.spinner("⏳ Fetching data and optimizing..."):
+                # Phase 3 Fix #5: Show prominent DEMO MODE banner when using synthetic data.
+                if not use_real_data:
+                    st.warning(
+                        "⚠️ **DEMO MODE** — Using *synthetic* random data. "
+                        "The tickers shown are labels only; results do NOT reflect "
+                        "real market performance. Enable **'Use Real Market Data'** "
+                        "in the sidebar for realistic results."
+                    )
+
                 # Get returns data
                 if use_real_data:
                     returns = fetch_real_returns(selected_tickers, lookback_days)
@@ -830,9 +930,11 @@ with tab1:
                 
                 if optimization_method == "Minimum Variance":
                     weights = optimizer.optimize_min_variance(returns)
+
                 elif optimization_method == "Maximum Sharpe Ratio":
                     weights = optimizer.optimize_max_sharpe(returns)
-                if optimization_method == "Sentiment-Aware (Phase 2)":
+
+                elif optimization_method == "Sentiment-Aware (Phase 2)":
                     from sentiment.lightweight_analyzer import LightweightSentimentAnalyzer
                     from sentiment.news_wrapper import NewsCollector
 
@@ -840,7 +942,6 @@ with tab1:
                     sentiment_scores = {}
 
                     if news_api_key:
-                        # Full news pipeline
                         try:
                             collector = NewsCollector(api_key=news_api_key)
                             vader = LightweightSentimentAnalyzer()
@@ -851,41 +952,146 @@ with tab1:
                                     sentiment_scores[ticker] = float(np.mean(scores))
                                 else:
                                     sentiment_scores[ticker] = 0.0
-                            st.info(f"Fetched live news sentiment for {len(sentiment_scores)} tickers.")
+                            st.info(f"📡 Live news sentiment fetched for {len(sentiment_scores)} tickers.")
                         except Exception as e:
-                            st.warning(f"News fetch failed ({e}). Using VADER on static headlines.")
-                            news_api_key = ""  # fall through to VADER-only below
+                            st.warning(f"News API failed ({e}). Trying Yahoo Finance RSS…")
+                            news_api_key = ""
 
                     if not news_api_key:
-                        # VADER-only fallback — no API key needed
-                        vader = LightweightSentimentAnalyzer()
-                        ticker_headlines = {
-                            'AAPL': 'Apple stock performance outlook',
-                            'MSFT': 'Microsoft cloud earnings growth',
-                            'GOOGL': 'Google advertising revenue trends',
-                            'NVDA': 'NVIDIA AI chip demand surge',
-                            'TSLA': 'Tesla production and delivery results',
-                            'META': 'Meta platform user growth and AI',
-                            'AMZN': 'Amazon AWS cloud and ecommerce',
-                            'JPM': 'JPMorgan banking revenue outlook',
-                            'V': 'Visa payment network growth',
-                            'JNJ': 'Johnson Johnson healthcare results',
-                        }
+                        # ── Fix 3: Yahoo Finance RSS fallback (replaces static headlines) ──
+                        try:
+                            import feedparser
+                            feedparser_ok = True
+                        except ImportError:
+                            feedparser_ok = False
+                        vader2 = LightweightSentimentAnalyzer() if 'vader' not in locals() else vader
+                        rss_scores = {}
+                        rss_missing = []
                         for ticker in selected_tickers:
-                            headline = ticker_headlines.get(ticker, f'{ticker} stock market performance')
-                            sentiment_scores[ticker] = vader.analyze_text(headline)['sentiment_value']
-                        st.info("Using VADER sentiment (no NEWS_API_KEY required). Add NEWS_API_KEY in .env for live news.")
+                            score = None
+                            if feedparser_ok:
+                                try:
+                                    rss_url = (
+                                        f"https://feeds.finance.yahoo.com/rss/2.0/headline"
+                                        f"?s={ticker}&region=US&lang=en-US"
+                                    )
+                                    feed = feedparser.parse(rss_url)
+                                    headlines = [e.title for e in feed.entries[:5] if e.get("title")]
+                                    if headlines:
+                                        sc = [vader2.analyze_text(h)['sentiment_value'] for h in headlines]
+                                        score = float(np.mean(sc))
+                                except Exception:
+                                    pass
+                            if score is not None:
+                                rss_scores[ticker] = score
+                            else:
+                                rss_missing.append(ticker)
 
-                    # Apply sentiment to adjust portfolio weights
-                    sentiment_series = pd.Series(sentiment_scores)
-                    # Boost/penalise weights: multiply by (1 + sentiment_weight * score)
+                        if rss_scores:
+                            sentiment_scores = rss_scores
+                            miss_note = (f"  No RSS data for: {', '.join(rss_missing)}." if rss_missing else "")
+                            st.info(f"📡 Yahoo Finance RSS sentiment fetched for {len(rss_scores)} ticker(s).{miss_note}")
+                        else:
+                            st.warning(
+                                "⚠️ No live sentiment data available (no NEWS_API_KEY and Yahoo Finance "
+                                "RSS returned no results). Sentiment adjustment **disabled** — "
+                                "running plain Max Sharpe."
+                            )
+                        # ────────────────────────────────────────────────────────────
+
+                    # Apply sentiment (or skip if no data)
                     raw_weights = optimizer.optimize_max_sharpe(returns)
-                    adjusted = raw_weights * (1 + sentiment_weight * sentiment_series.reindex(raw_weights.index, fill_value=0.0))
-                    adjusted = adjusted.clip(lower=0)
-                    weights = adjusted / adjusted.sum()  # re-normalise
+                    if sentiment_scores:
+                        s_series = pd.Series(sentiment_scores)
+                        adjusted = raw_weights * (
+                            1 + sentiment_weight
+                            * s_series.reindex(raw_weights.index, fill_value=0.0)
+                        )
+                        adjusted = adjusted.clip(lower=0)
+                        weights = adjusted / adjusted.sum()
+                        st.success("✅ Sentiment-aware weights computed!")
+                    else:
+                        weights = raw_weights
                     optimizer.weights = weights
                     optimizer._calculate_performance(returns, weights)
-                    st.success("Sentiment-aware weights computed!")
+
+                # ── Fix 1: QAOA (Quantum) ─────────────────────────────────────────────
+                elif optimization_method == "QAOA (Quantum)":
+                    from quantum.qaoa_optimizer import QAOAOptimizer
+                    if len(returns.columns) > 10:
+                        st.error(
+                            f"⚛️ QAOA supports ≤10 stocks (you have {len(returns.columns)}). "
+                            "Please choose a smaller preset."
+                        )
+                        st.stop()
+                    if qaoa_backend_mode == "ibm_real":
+                        st.info("☁️ Connecting to IBM Quantum... (this may take a moment)")
+                    qaoa = QAOAOptimizer(
+                        num_layers=qaoa_layers,
+                        max_iterations=qaoa_max_iter,
+                        backend_mode=qaoa_backend_mode,
+                        ibm_backend_name=ibm_backend_name_input,
+                    )
+                    if qaoa_backend_mode == "ibm_real" and not qaoa.using_ibm:
+                        err_detail = getattr(qaoa, 'ibm_error', None) or "Unknown error"
+                        st.warning(
+                            f"⚠️ IBM connection failed — running on local Aer simulator instead.\n\n"
+                            f"**Reason:** `{err_detail}`\n\n"
+                            f"💡 **Tip:** Try changing the IBM Backend name to `ibmq_qasm_simulator` (IBM cloud simulator, free & no queue)."
+                        )
+                    try:
+                        sel_q, w_arr, qaoa_info = qaoa.optimize(returns, budget=qaoa_budget)
+                    except ValueError as ve:
+                        st.error(str(ve))
+                        st.stop()
+                    if qaoa_info.get("fallback_warning"):  # Fix 6
+                        st.warning(f"⚠️ QAOA Fallback: {qaoa_info['fallback_warning']}")
+                    weights = pd.Series(w_arr, index=returns.columns)
+                    optimizer.weights = weights
+                    optimizer._calculate_performance(returns, weights)
+                    st.info(
+                        f"⚛️ QAOA selected **{len(sel_q)} stocks**: {', '.join(sel_q)} "
+                        f"in {qaoa_info['iterations']} iterations. "
+                        f"Backend: {qaoa_info.get('backend', 'N/A')}"
+                    )
+
+                # ── Fix 1: Hybrid Sentiment-Quantum ─────────────────────────────────
+                elif optimization_method == "Hybrid Sentiment-Quantum":
+                    from hybrid.sentiment_quantum_optimizer import SentimentQuantumOptimizer
+                    if len(returns.columns) > 10:
+                        st.error(
+                            f"⚛️ Hybrid Sentiment-Quantum supports ≤10 stocks "
+                            f"(you have {len(returns.columns)}). Please choose a smaller preset."
+                        )
+                        st.stop()
+                    hybrid = SentimentQuantumOptimizer(
+                        news_api_key=st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", "")),
+                        qaoa_layers=qaoa_layers,
+                        qaoa_max_iterations=qaoa_max_iter,
+                        sentiment_weight=sentiment_weight,
+                        backend_mode=qaoa_backend_mode,
+                        ibm_backend_name=ibm_backend_name_input,
+                    )
+                    try:
+                        sel_h, w_arr_h, h_info = hybrid.optimize(
+                            returns=returns,
+                            tickers=returns.columns.tolist(),
+                            budget=qaoa_budget,
+                            days_back=news_lookback,
+                        )
+                    except ValueError as ve:
+                        st.error(str(ve))
+                        st.stop()
+                    if h_info.get("fallback_warning"):  # Fix 6
+                        st.warning(f"⚠️ Hybrid Fallback: {h_info['fallback_warning']}")
+                    weights = pd.Series(w_arr_h, index=returns.columns)
+                    optimizer.weights = weights
+                    optimizer._calculate_performance(returns, weights)
+                    st.info(
+                        f"⚛️ Hybrid selected **{len(sel_h)} stocks**: {', '.join(sel_h)}.  "
+                        f"News: {h_info.get('news_count', 0)} articles.  "
+                        f"Backend: {h_info.get('backend', 'N/A')}."
+                    )
                 
                 perf = optimizer.get_performance_summary()
                 
@@ -1116,9 +1322,12 @@ with tab3:
         returns = results['returns']
         opt_weights = results['weights']
         
-        # Equal-weight comparison
-        equal_weights = pd.Series([1/len(selected_tickers)] * len(selected_tickers), 
-                                 index=selected_tickers)
+        # Phase 3 Fix #6: Use returns.columns (not selected_tickers) for the
+        # equal-weight baseline so real-data runs that drop tickers stay aligned.
+        eq_index = returns.columns
+        equal_weights = pd.Series(
+            [1 / len(eq_index)] * len(eq_index), index=eq_index
+        )
         
         # Calculate metrics for both strategies
         opt_returns_series = (returns * opt_weights).sum(axis=1)
@@ -1385,10 +1594,10 @@ with tab5:
     ### 🛠️ Tech Stack
     
     - **Frontend**: Streamlit with Plotly visualizations
-    - **Backend**: Python with CVXPY optimization
-    - **Quantum**: Qiskit, PennyLane
-    - **ML/NLP**: Transformers, FinBERT
-    - **Data**: yfinance, NewsAPI, Alpha Vantage
+    - **Backend**: Python with CVXPY & SciPy optimization
+    - **Quantum**: Qiskit, Qiskit-Aer (local simulator), Qiskit-IBM-Runtime (QPU)
+    - **ML/NLP**: Transformers (FinBERT), VADER Sentiment
+    - **Data**: yfinance (market data), NewsAPI (financial news)
     
     ### 📚 Usage
     
@@ -1460,10 +1669,3 @@ if 'optimization_results' in st.session_state:
                     st.caption("Includes: Portfolio Weights · Performance Metrics · Strategy Comparison")
                 except Exception as e:
                     st.error(f"❌ PDF generation failed: {e}")
-
-# Footer
-st.markdown("""
-    <div style="text-align: center; color: #666; padding: 20px;">
-        <p>Q-Orbit Portfolio Optimizer v1.0 | Built with Streamlit</p>
-    </div>
-""", unsafe_allow_html=True)

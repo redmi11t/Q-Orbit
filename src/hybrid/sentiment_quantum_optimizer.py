@@ -9,6 +9,7 @@ from typing import List, Tuple, Dict, Optional
 from pathlib import Path
 import sys
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -37,7 +38,9 @@ class SentimentQuantumOptimizer:
         qaoa_layers: int = 2,
         qaoa_max_iterations: int = 50,
         sentiment_weight: float = 0.3,
-        prefer_finbert: bool = True
+        prefer_finbert: bool = True,
+        backend_mode: str = 'simulator',
+        ibm_backend_name: Optional[str] = None,
     ):
         """
         Initialize hybrid optimizer
@@ -48,6 +51,8 @@ class SentimentQuantumOptimizer:
             qaoa_max_iterations: Max classical optimization iterations
             sentiment_weight: Weight for sentiment influence (0-1)
             prefer_finbert: Try to use FinBERT (falls back to VADER)
+            backend_mode: 'simulator' or 'ibm_real' (IBM Quantum real hardware)
+            ibm_backend_name: IBM QPU name e.g. 'ibm_brisbane'
         """
         print("Initializing Hybrid Sentiment-Quantum Optimizer")
         print("=" * 70)
@@ -63,7 +68,9 @@ class SentimentQuantumOptimizer:
         print("\n[3/3] Setting up quantum optimizer...")
         self.qaoa = QAOAOptimizer(
             num_layers=qaoa_layers,
-            max_iterations=qaoa_max_iterations
+            max_iterations=qaoa_max_iterations,
+            backend_mode=backend_mode,
+            ibm_backend_name=ibm_backend_name,
         )
         
         self.sentiment_weight = sentiment_weight
@@ -110,18 +117,28 @@ class SentimentQuantumOptimizer:
         print(f"Sentiment weight: {self.sentiment_weight}")
         print(f"QAOA layers: {self.qaoa.num_layers}")
         
-        # Step 1: Collect news
-        print(f"\n[1/4] Fetching news (last {days_back} days)...")
+        # Step 1: Collect news ─ parallel fetch (Speed fix 2)
+        print(f"\n[1/4] Fetching news in parallel (last {days_back} days, {len(tickers)} tickers)...")
+
+        def _fetch_one(ticker: str) -> list:
+            """Fetch news for a single ticker; safe to call from threads."""
+            try:
+                return self.news_collector.fetch_news(
+                    ticker=ticker,
+                    days_back=days_back,
+                    max_articles=max_articles_per_stock
+                ) or []
+            except Exception:
+                return []
+
         all_news = []
-        for ticker in tickers:
-            news = self.news_collector.fetch_news(
-                ticker=ticker,
-                days_back=days_back,
-                max_articles=max_articles_per_stock
-            )
-            all_news.extend(news)
-            if news:
-                print(f"      {ticker}: {len(news)} articles")
+        with ThreadPoolExecutor(max_workers=min(len(tickers), 6)) as pool:
+            futures = {pool.submit(_fetch_one, t): t for t in tickers}
+            for fut in as_completed(futures):
+                ticker_news = fut.result()
+                all_news.extend(ticker_news)
+                if ticker_news:
+                    print(f"      {futures[fut]}: {len(ticker_news)} articles")
         
         if not all_news:
             print("      ⚠️  No news found, using neutral sentiment")
@@ -182,7 +199,9 @@ class SentimentQuantumOptimizer:
         # Add sentiment information to results
         info['sentiment_summary'] = sentiment_summary
         info['sentiment_weight'] = self.sentiment_weight
-        info['backend'] = self.sentiment_analyzer.get_backend_info()
+        # Phase 3 Fix #16: Use 'sentiment_backend' so we don't overwrite the
+        # quantum backend string already set by self.qaoa.optimize() in info['backend'].
+        info['sentiment_backend'] = self.sentiment_analyzer.get_backend_info()
         info['news_count'] = len(all_news)
         
         self.sentiment_scores = sentiment_summary

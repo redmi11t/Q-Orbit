@@ -28,7 +28,7 @@ class PortfolioQUBO:
         self,
         risk_factor: float = 1.0,
         return_factor: float = 0.5,
-        budget_penalty: float = 10.0
+        budget_penalty: Optional[float] = None
     ):
         """
         Initialize QUBO formulator
@@ -36,11 +36,17 @@ class PortfolioQUBO:
         Args:
             risk_factor: Weight for risk term (higher = more conservative)
             return_factor: Weight for return term (higher = more growth-oriented)
-            budget_penalty: Penalty for violating budget constraint (should be >> other factors)
+            budget_penalty: Penalty for violating the budget constraint.  When set
+                to None (default), the penalty is computed dynamically inside
+                ``formulate()`` as ``max(|cov_matrix|) * 2``, which keeps the
+                constraint strong enough to be enforced while staying the same
+                order of magnitude as the risk/return terms.  Pass an explicit
+                float only when you need to override this behaviour.
         """
         self.risk_factor = risk_factor
         self.return_factor = return_factor
-        self.budget_penalty = budget_penalty
+        self._budget_penalty_override = budget_penalty  # None → compute dynamically
+        self.budget_penalty = budget_penalty if budget_penalty is not None else 10.0
         
         self.Q = None  # QUBO matrix
         self.tickers = None
@@ -67,6 +73,18 @@ class PortfolioQUBO:
         # Calculate portfolio statistics
         mean_returns = returns.mean().values * 252  # Annualized
         cov_matrix = returns.cov().values * 252  # Annualized
+
+        # ── Fix 4: Dynamic budget penalty ────────────────────────────────────
+        # The penalty must dominate the QUBO so the budget constraint is always
+        # satisfied, but if it is *far* larger than the risk/return terms the
+        # solver purely optimises for budget feasibility and ignores
+        # risk/return.  Setting it to 2× the largest covariance element keeps
+        # it in the right ballpark regardless of the asset universe.
+        if self._budget_penalty_override is None:
+            max_cov = np.abs(cov_matrix).max()
+            dynamic_penalty = max(max_cov * 2, 1.0)  # at least 1.0 for safety
+            self.budget_penalty = dynamic_penalty
+        # ─────────────────────────────────────────────────────────────────────
         
         # Initialize QUBO matrix
         Q = np.zeros((self.num_assets, self.num_assets))
@@ -85,10 +103,11 @@ class PortfolioQUBO:
         
         # Diagonal term: penalty * (1 - 2*budget) for each xᵢ
         np.fill_diagonal(Q, Q.diagonal() + self.budget_penalty * (1 - 2 * budget))
-        
-        # Off-diagonal term: 2 * penalty for each xᵢ*xⱼ (from expanding (Σxᵢ)²)
-        # Add penalty to all off-diagonal elements
-        Q += self.budget_penalty * (1 - np.eye(self.num_assets))
+
+        # Off-diagonal term: 2 * penalty for each xᵢ∗xⱼ pair (from expanding (Σxᵢ)²)
+        # Phase 2 Fix #8: correct coefficient is 2×penalty, not 1×.
+        # Expanding (Σ xᵢ)^2 = Σ xᵢ^2 + 2Σ_{i<j} xᵢ xⱼ, so each pair gets *2*B.
+        Q += 2 * self.budget_penalty * (1 - np.eye(self.num_assets))
         
         self.Q = Q
         return Q
