@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Qiskit](https://img.shields.io/badge/Qiskit-0.45%2B-purple.svg)](https://qiskit.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.29%2B-red.svg)](https://streamlit.io/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **A complete hybrid quantum-classical portfolio optimizer combining Quantum QAOA, FinBERT/VADER sentiment analysis, and Markowitz theory — all in an interactive Streamlit dashboard.**
 
@@ -208,7 +208,11 @@ python benchmarks/performance_comparison.py
 
 ## 📄 License
 
-MIT License — see [LICENSE](LICENSE) for details.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+This project is licensed under the **MIT License** — you are free to use, copy, modify, and distribute this software for any purpose, with or without modification, as long as the original copyright notice is retained.
+
+See the [LICENSE](LICENSE) file for the full license text.
 
 ---
 
