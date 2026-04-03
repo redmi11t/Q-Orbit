@@ -166,7 +166,9 @@ class FinancialSentimentAnalyzer:
         print(f"\nAnalyzing sentiment for {len(news_df)} articles...")
 
         sentiments = []
-        for idx, row in news_df.iterrows():
+        # Fix #6: use enumerate() for a proper loop counter instead of
+        # the DataFrame index, which can be non-sequential after filtering.
+        for loop_i, (idx, row) in enumerate(news_df.iterrows()):
             # Combine title and description
             text = str(row.get('title', ''))
             if row.get('description'):
@@ -176,8 +178,8 @@ class FinancialSentimentAnalyzer:
             sentiments.append(sentiment)
 
             # Progress indicator
-            if (idx + 1) % 10 == 0:
-                print(f"  Processed {idx + 1}/{len(news_df)} articles...")
+            if (loop_i + 1) % 10 == 0:
+                print(f"  Processed {loop_i + 1}/{len(news_df)} articles...")
 
         # Add sentiment columns
         news_df['sentiment_label'] = [s['label'] for s in sentiments]
@@ -214,17 +216,25 @@ class FinancialSentimentAnalyzer:
 class SentimentCache:
     """Cache sentiment analysis results to avoid re-processing"""
 
-    def __init__(self, cache_file: Path = Path("data/sentiment/cache.json"),
+    def __init__(self, cache_file: Path = None,
                  save_interval: int = 10):
+        # Fix #14: Default to an absolute path anchored to this module's directory
+        # so the cache always lands in data/sentiment/ under the project root,
+        # regardless of the CWD when the process is started.
+        if cache_file is None:
+            _module_dir = Path(__file__).resolve().parent  # src/sentiment/
+            cache_file = _module_dir.parent.parent / "data" / "sentiment" / "cache.json"
         self.cache_file = cache_file
         self.cache_file.parent.mkdir(parents=True, exist_ok=True)
         self.cache = self._load_cache()
         # Phase 4 Fix #10: Track dirty count so we write in batches.
-        # Writing the full JSON on every single article causes 100 rewrites
-        # per 10-ticker × 10-article run. Now we flush every `save_interval`
-        # new entries, and again when the object is destroyed.
         self._dirty = 0
         self.save_interval = save_interval
+
+        # Fix #2: Register atexit flush so the cache is always persisted on
+        # process exit — __del__ is unreliable on Windows and with hot-reloads.
+        import atexit
+        atexit.register(self._flush_if_dirty)
 
     def _load_cache(self) -> Dict:
         if self.cache_file.exists():
@@ -236,6 +246,14 @@ class SentimentCache:
         with open(self.cache_file, 'w') as f:
             json.dump(self.cache, f, indent=2)
         self._dirty = 0
+
+    def _flush_if_dirty(self):
+        """Flush only if there are unsaved entries (used by atexit)."""
+        try:
+            if self._dirty > 0:
+                self._save_cache()
+        except Exception:
+            pass
 
     def get(self, text_hash: str) -> Optional[Dict]:
         return self.cache.get(text_hash)

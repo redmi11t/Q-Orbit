@@ -13,6 +13,12 @@ from scipy.optimize import minimize
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
 
+# Fix #19: move import to module level so it is not repeated inside the hot path
+try:
+    from classical.baseline import MarkowitzOptimizer
+except ImportError:
+    from src.classical.baseline import MarkowitzOptimizer
+
 try:
     from .qubo_formulation import PortfolioQUBO
 except ImportError:
@@ -167,9 +173,8 @@ class QAOAOptimizer:
             
         # Post-selection weight refinement: Run classical Markowitz on selected subset
         # This is a 'Best of Both Worlds' approach: Quantum for selection, Classical for sizing.
-        from classical.baseline import MarkowitzOptimizer
         subset_returns = returns[selected_tickers]
-        subset_opt = MarkowitzOptimizer()
+        subset_opt = MarkowitzOptimizer()  # imported at module level (Fix #19)
         
         try:
             # Try to get optimal weights for the subset
@@ -342,8 +347,12 @@ class QAOAOptimizer:
             # E[energy] = sum_k P(k) * energy(k)
             expectation = float(np.dot(probs, qubo_energies))
 
-            # Best bitstring = highest probability state
-            best_idx = int(np.argmax(probs))
+            # Fix #9: Best bitstring = minimum QUBO energy among the top-5 most
+            # probable states.  Picking purely by max-probability is only correct
+            # when QAOA has fully converged (large p, many iterations).  Evaluating
+            # energy for the top candidates is cheap and far more robust.
+            top5_indices = np.argpartition(probs, -min(5, len(probs)))[-min(5, len(probs)):]
+            best_idx = int(top5_indices[np.argmin(qubo_energies[top5_indices])])
             self.optimal_bitstring = format(best_idx, f'0{n}b')  # MSB-first
 
             self.optimization_history.append(expectation)

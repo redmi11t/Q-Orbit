@@ -32,6 +32,13 @@ class NewsCollector:
             raise ImportError(
                 "newsapi-python is not installed. Run: pip install newsapi-python"
             )
+        # Fix #3: Validate the key before passing it into NewsApiClient.
+        # A None / empty key causes a cryptic TypeError deep inside the library.
+        if not api_key:
+            raise ValueError(
+                "NewsAPI key is required to fetch news articles. "
+                "Set NEWS_API_KEY in your .env file or pass it explicitly."
+            )
         self.newsapi = NewsApiClient(api_key=api_key)
         self.cache_dir = cache_dir or Path("data/news")
         self.cache_dir.mkdir(parents=True, exist_ok=True)

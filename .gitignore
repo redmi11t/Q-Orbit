@@ -48,6 +48,7 @@ Thumbs.db
 # Data (don't commit large datasets)
 data/prices/*.csv
 data/news/*.json
+data/sentiment/*.json
 data/sentiment/*.pkl
 
 # Models (HuggingFace cache + weights)

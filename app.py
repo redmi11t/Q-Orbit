@@ -398,6 +398,10 @@ def fetch_real_returns(tickers, days=365):
         data = yf.download(tickers, start=start_date, end=end_date, progress=False, auto_adjust=True)
         
         prices = data['Close']
+        # Fix #7: yf.download returns a Series (not DataFrame) for a single ticker.
+        # Convert to DataFrame before calling .columns / .dropna(axis=1, ...).
+        if isinstance(prices, pd.Series):
+            prices = prices.to_frame(name=tickers[0] if isinstance(tickers, list) else tickers)
         prices = prices.dropna(axis=1, how='all')  # Remove tickers with no data
         
         if prices.empty or len(prices.columns) < 2:
@@ -460,9 +464,10 @@ def create_efficient_frontier_plot(returns, optimizer):
         use_true_ef = False
 
     # Monte Carlo cloud for context (500 random portfolios)
-    np.random.seed(0)
+    # Fix #25: use a local, seeded Generator instead of mutating global np.random state.
+    _mc_rng = np.random.default_rng(0)
     for _ in range(500):
-        w = np.random.random(len(returns.columns))
+        w = _mc_rng.random(len(returns.columns))
         w /= w.sum()
         port_return = np.dot(w, mean_returns)
         port_vol = np.sqrt(np.dot(w.T, np.dot(cov_matrix, w)))
@@ -904,8 +909,11 @@ with tab1:
         optimize_button = st.button("🚀 Optimize Portfolio", type="primary", use_container_width=True)
     
     with col1:
-        if optimize_button or 'optimization_results' in st.session_state:
-            
+        # Fix #15: Only re-run optimization when the button is pressed.
+        # Previously the entire block ran on every Streamlit rerun that found
+        # 'optimization_results' in session_state (tab switch, slider move, etc.),
+        # causing needless repeated data fetching and solver calls.
+        if optimize_button:
             with st.spinner("⏳ Fetching data and optimizing..."):
                 # Phase 3 Fix #5: Show prominent DEMO MODE banner when using synthetic data.
                 if not use_real_data:
@@ -1104,11 +1112,14 @@ with tab1:
                 }
             
             st.success("✅ Optimization Complete!")
-            
-            # Display Results
+
+        # Display Results — read from session_state so results persist
+        # across tab switches without re-running the solver (Fix #15 cont.)
+        if 'optimization_results' in st.session_state:
+            _res = st.session_state.optimization_results
             st.subheader("Optimal Portfolio Weights")
             
-            weights_sorted = weights.sort_values(ascending=False)
+            weights_sorted = _res['weights'].sort_values(ascending=False)
             weights_data = []
             
             for ticker, weight in weights_sorted.items():
@@ -1123,7 +1134,7 @@ with tab1:
             
             # Pie Chart
             st.plotly_chart(
-                create_weights_pie_chart(weights, list(weights.index)),
+                create_weights_pie_chart(_res['weights'], list(_res['weights'].index)),
                 use_container_width=True
             )
 
@@ -1356,10 +1367,12 @@ with tab3:
                 f"{eq_annual_vol:.2%}",
                 f"{eq_sharpe:.2f}"
             ],
+            # Fix #18: Guard all divisions against zero to prevent ZeroDivisionError
+            # when synthetic data produces near-zero equal-weight returns.
             'Improvement': [
-                f"{((opt_annual_return - eq_annual_return) / eq_annual_return * 100):.1f}%",
-                f"{((eq_annual_vol - opt_annual_vol) / eq_annual_vol * 100):.1f}%",
-                f"{((opt_sharpe - eq_sharpe) / abs(eq_sharpe) * 100):.1f}%"
+                f"{((opt_annual_return - eq_annual_return) / (abs(eq_annual_return) or 1e-10) * 100):.1f}%",
+                f"{((eq_annual_vol - opt_annual_vol) / (eq_annual_vol or 1e-10) * 100):.1f}%",
+                f"{((opt_sharpe - eq_sharpe) / (abs(eq_sharpe) or 1e-10) * 100):.1f}%"
             ]
         }
         
@@ -1493,27 +1506,35 @@ with tab4:
                     benchmark_results.append(_bench_entry("Classical Max-Sharpe", opt, w, time.time() - t0))
                 
                 # ── Quantum QAOA ─────────────────────────────────────────────
-                with st.spinner("Benchmarking Quantum QAOA (may take ~1 min)..."):
-                    qaoa = _QAOA(num_layers=1)
-                    t0 = time.time()
-                    target_budget = min(5, len(returns.columns))
-                    _, w_arr, _ = qaoa.optimize(returns, budget=target_budget)
-                    w_series = pd.Series(w_arr, index=returns.columns)
-                    perf_calc = _MO(risk_free_rate=risk_free_rate)
-                    benchmark_results.append(_bench_entry("Quantum QAOA", perf_calc, w_series, time.time() - t0))
-                
-                # ── Hybrid Sentiment-Quantum ─────────────────────────────────
-                with st.spinner("Benchmarking Hybrid Sentiment-Quantum (may take ~2 min)..."):
-                    hybrid = _HQ(news_api_key=st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", "")))
-                    t0 = time.time()
-                    _, w_arr_h, _ = hybrid.optimize(
-                        returns=returns,
-                        tickers=returns.columns.tolist(),
-                        budget=min(5, len(returns.columns))
+                # Fix #10: Guard against >10 qubits before running quantum methods
+                if len(returns.columns) > 10:
+                    st.warning(
+                        f"⚛️ Skipping Quantum QAOA & Hybrid — portfolio has "
+                        f"**{len(returns.columns)} stocks** (>10 qubit limit). "
+                        "Reduce the portfolio to ≤10 stocks to include quantum benchmarks."
                     )
-                    w_series_h = pd.Series(w_arr_h, index=returns.columns)
-                    perf_calc_h = _MO(risk_free_rate=risk_free_rate)
-                    benchmark_results.append(_bench_entry("Hybrid Sentiment-Q", perf_calc_h, w_series_h, time.time() - t0))
+                else:
+                    with st.spinner("Benchmarking Quantum QAOA (may take ~1 min)..."):
+                        qaoa = _QAOA(num_layers=1)
+                        t0 = time.time()
+                        target_budget = min(5, len(returns.columns))
+                        _, w_arr, _ = qaoa.optimize(returns, budget=target_budget)
+                        w_series = pd.Series(w_arr, index=returns.columns)
+                        perf_calc = _MO(risk_free_rate=risk_free_rate)
+                        benchmark_results.append(_bench_entry("Quantum QAOA", perf_calc, w_series, time.time() - t0))
+                    
+                    # ── Hybrid Sentiment-Quantum ─────────────────────────────────
+                    with st.spinner("Benchmarking Hybrid Sentiment-Quantum (may take ~2 min)..."):
+                        hybrid = _HQ(news_api_key=st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", "")))
+                        t0 = time.time()
+                        _, w_arr_h, _ = hybrid.optimize(
+                            returns=returns,
+                            tickers=returns.columns.tolist(),
+                            budget=min(5, len(returns.columns))
+                        )
+                        w_series_h = pd.Series(w_arr_h, index=returns.columns)
+                        perf_calc_h = _MO(risk_free_rate=risk_free_rate)
+                        benchmark_results.append(_bench_entry("Hybrid Sentiment-Q", perf_calc_h, w_series_h, time.time() - t0))
                 
                 bench_df = pd.DataFrame(benchmark_results)
                 st.session_state.benchmark_df = bench_df

@@ -105,9 +105,14 @@ class PortfolioQUBO:
         np.fill_diagonal(Q, Q.diagonal() + self.budget_penalty * (1 - 2 * budget))
 
         # Off-diagonal term: 2 * penalty for each xᵢ∗xⱼ pair (from expanding (Σxᵢ)²)
-        # Phase 2 Fix #8: correct coefficient is 2×penalty, not 1×.
-        # Expanding (Σ xᵢ)^2 = Σ xᵢ^2 + 2Σ_{i<j} xᵢ xⱼ, so each pair gets *2*B.
-        Q += 2 * self.budget_penalty * (1 - np.eye(self.num_assets))
+        # Fix #8: The original `Q += 2B*(1 - eye)` added 2B to *both* Q[i,j] and Q[j,i],
+        # effectively applying 4B per pair when x^T Q x is evaluated (double-counting).
+        # Correct approach: add 2B to the upper triangle only, then symmetrize so that
+        # x^T Q x = Σᵢ Qᵢᵢ xᵢ + 2Σᵢ<ⱼ Qᵢⱼ xᵢxⱼ gives exactly 2B per pair.
+        i_idx, j_idx = np.triu_indices(self.num_assets, k=1)
+        Q[i_idx, j_idx] += 2 * self.budget_penalty
+        # Symmetrise: copy upper triangle to lower
+        Q[j_idx, i_idx] = Q[i_idx, j_idx]
         
         self.Q = Q
         return Q

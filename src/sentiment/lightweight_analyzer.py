@@ -165,15 +165,16 @@ if __name__ == "__main__":
         "Google parent Alphabet maintains steady growth in advertising revenue."
     ]
     
-    print("\\nSample Sentiment Analysis:")
+    print("\nSample Sentiment Analysis:")
     print("-" * 60)
     
     for text in test_texts:
         sentiment = analyzer.analyze_text(text)
-        print(f"\\nText: {text[:70]}...")
+        print(f"\nText: {text[:70]}...")
         print(f"  Sentiment: {sentiment['label'].upper()}")
         print(f"  Confidence: {sentiment['score']:.3f}")
         print(f"  Value: {sentiment['sentiment_value']:+.3f}")
     
-    print("\\n" + "=" * 60)
+    print("\n" + "=" * 60)
     print("✓ VADER analyzer working perfectly!")
+

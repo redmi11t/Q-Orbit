@@ -38,7 +38,9 @@ class Config:
     
     # Quantum Settings
     QAOA_LAYERS = int(os.getenv("QAOA_LAYERS", "3"))
-    QUANTUM_BACKEND = os.getenv("QUANTUM_BACKEND", "qasm_simulator")
+    # Fix #12: 'qasm_simulator' was removed in Qiskit Aer >= 0.12.
+    # The actual backend used in qaoa_optimizer.py is AerSimulator(method='statevector').
+    QUANTUM_BACKEND = os.getenv("QUANTUM_BACKEND", "aer_simulator_statevector")
     IBM_QUANTUM_BACKEND = os.getenv("IBM_QUANTUM_BACKEND", "ibm_brisbane")
     MAX_ITERATIONS = int(os.getenv("MAX_ITERATIONS", "100"))
     
@@ -54,15 +56,16 @@ class Config:
     @classmethod
     def validate_api_keys(cls):
         """Check if required API keys are set"""
-        warnings = []
+        # Fix #24: renamed from 'warnings' to avoid shadowing the stdlib module.
+        issues = []
         
         if not cls.NEWS_API_KEY:
-            warnings.append("NEWS_API_KEY not set - news fetching will be limited")
+            issues.append("NEWS_API_KEY not set - news fetching will be limited")
         
         if not any([cls.OPENAI_API_KEY, cls.GOOGLE_API_KEY, cls.ANTHROPIC_API_KEY]):
-            warnings.append("No LLM API key set - using local models only")
+            issues.append("No LLM API key set - using local models only")
         
-        return warnings
+        return issues
 
 # Create singleton instance
 config = Config()

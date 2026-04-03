@@ -142,7 +142,9 @@ class IBMBackendHelper:
                 "available": False,
                 "error": "No IBM_QUANTUM_TOKEN set in .env",
             }
-        backend = self.get_backend()
+        # Fix #17: Reuse the already-cached backend object if available so we
+        # do not trigger a second IBM authentication round-trip per page load.
+        backend = self._backend if self._backend is not None else self.get_backend()
         if backend is None:
             return {
                 "configured": True,

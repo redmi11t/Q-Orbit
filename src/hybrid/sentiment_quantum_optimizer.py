@@ -223,6 +223,12 @@ class SentimentQuantumOptimizer:
         """
         Q_adjusted = Q.copy()
         
+        # Fix #4: Scale the sentiment adjustment relative to the existing QUBO
+        # diagonal so it stays proportional to the risk/return terms.
+        # A hardcoded *10 can completely dominate (override) the optimizer when
+        # sentiment_weight is large or the asset universe has small covariances.
+        qubo_diag_scale = float(np.abs(np.diag(Q)).mean()) or 1.0
+
         for i, ticker in enumerate(tickers):
             if ticker in sentiment_summary.index:
                 sentiment = sentiment_summary.loc[ticker, 'avg_sentiment']
@@ -232,10 +238,10 @@ class SentimentQuantumOptimizer:
             # Sentiment bonus/penalty on diagonal
             # Negative sentiment = higher cost = less likely to select
             # Positive sentiment = lower cost = more likely to select
-            sentiment_adjustment = -sentiment * self.sentiment_weight * 10
+            sentiment_adjustment = -sentiment * self.sentiment_weight * qubo_diag_scale
             Q_adjusted[i, i] += sentiment_adjustment
         
-        print(f"      Applied sentiment adjustments to QUBO matrix")
+        print(f"      Applied sentiment adjustments to QUBO matrix (scale={qubo_diag_scale:.4f})")
         print(f"      Range: [{Q_adjusted.min():.2f}, {Q_adjusted.max():.2f}]")
         
         return Q_adjusted

@@ -9,6 +9,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from pathlib import Path
+import hashlib
 
 class DataLoader:
     """Fetch and cache financial market data"""
@@ -42,7 +43,11 @@ class DataLoader:
         Returns:
             DataFrame with adjusted close prices
         """
-        cache_file = self.cache_dir / f"prices_{'_'.join(tickers)}_{start_date}_{end_date}.csv"
+        # Fix #11: Joining all ticker names with '_' can exceed the Windows
+        # 260-character path limit for large portfolios.  Use a short SHA-256
+        # hash of the sorted ticker list instead for a stable, compact key.
+        tickers_key = hashlib.sha256('_'.join(sorted(tickers)).encode()).hexdigest()[:16]
+        cache_file = self.cache_dir / f"prices_{tickers_key}_{start_date}_{end_date}.csv"
         
         # Try to load from cache
         if use_cache and cache_file.exists():

@@ -106,8 +106,11 @@ class MarkowitzOptimizer:
         # ─────────────────────────────────────────────────────────────────────
 
         # Deterministic fallback guesses (equal weight, dirichlet, biased)
+        # Fix #5: Use a seeded RNG instead of the global numpy state so that
+        # results are reproducible across reruns regardless of external RNG state.
+        _rng = np.random.default_rng(42)
         initial_guesses.append(np.array([1/n_assets] * n_assets))
-        initial_guesses.append(np.random.dirichlet(np.ones(n_assets)))
+        initial_guesses.append(_rng.dirichlet(np.ones(n_assets)))
         
         # Add a guess biased toward the highest-return asset
         biased = np.ones(n_assets) * 0.5 / n_assets
@@ -223,6 +226,9 @@ class MarkowitzOptimizer:
         sigma = returns.cov() * 252
         # Enforce exact symmetry at the NumPy level to satisfy cvxpy's check
         sigma_np = (sigma.values + sigma.values.T) / 2
+        # Fix #1: Add regularization (same as optimize_min_variance) to guarantee
+        # positive-definiteness on near-singular real covariance matrices.
+        sigma_np += 1e-6 * np.eye(n_assets)
         sigma_psd = cp.psd_wrap(sigma_np)
         
         w = cp.Variable(n_assets)
