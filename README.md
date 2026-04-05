@@ -44,8 +44,7 @@ NEWS_API_KEY=your_newsapi_key      # Optional — VADER fallback works without i
 IBM_QUANTUM_TOKEN=your_ibm_token   # Optional — uses local Aer simulator by default
 ```
 
-> **Note:** Never commit your `.env` or `.streamlit/secrets.toml` files.
-> Both are already listed in `.gitignore`.
+
 
 ### 3. Launch the App
 
