@@ -906,7 +906,7 @@ with tab1:
         for ticker in selected_tickers:
             st.write(f"• {ticker}")
         
-        optimize_button = st.button("🚀 Optimize Portfolio", type="primary", use_container_width=True)
+        optimize_button = st.button("🚀 Optimize Portfolio", type="primary", width='stretch')
     
     with col1:
         # Fix #15: Only re-run optimization when the button is pressed.
@@ -1099,13 +1099,32 @@ with tab1:
                             f"(you have {len(returns.columns)}). Please choose a smaller preset."
                         )
                         st.stop()
-                    hybrid = SentimentQuantumOptimizer(
-                        news_api_key=st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", "")),
-                        qaoa_layers=qaoa_layers,
-                        qaoa_max_iterations=qaoa_max_iter,
-                        sentiment_weight=sentiment_weight,
-                        backend_mode=qaoa_backend_mode,
-                        ibm_backend_name=ibm_backend_name_input,
+
+                    # Cache the optimizer so FinBERT is only loaded once per
+                    # session — re-creating it on every Streamlit rerun was the
+                    # cause of the app crash (OOM / timeout from repeated heavy
+                    # model loading after the QAOA step completed).
+                    @st.cache_resource(show_spinner=False)
+                    def _get_hybrid_optimizer(
+                        _news_api_key, _qaoa_layers, _qaoa_max_iterations,
+                        _sentiment_weight, _backend_mode, _ibm_backend_name
+                    ):
+                        return SentimentQuantumOptimizer(
+                            news_api_key=_news_api_key,
+                            qaoa_layers=_qaoa_layers,
+                            qaoa_max_iterations=_qaoa_max_iterations,
+                            sentiment_weight=_sentiment_weight,
+                            backend_mode=_backend_mode,
+                            ibm_backend_name=_ibm_backend_name,
+                        )
+
+                    hybrid = _get_hybrid_optimizer(
+                        st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", "")),
+                        qaoa_layers,
+                        qaoa_max_iter,
+                        sentiment_weight,
+                        qaoa_backend_mode,
+                        ibm_backend_name_input,
                     )
                     try:
                         sel_h, w_arr_h, h_info = hybrid.optimize(
@@ -1192,7 +1211,7 @@ with tab1:
             # Pie Chart
             st.plotly_chart(
                 create_weights_pie_chart(_res['weights'], list(_res['weights'].index)),
-                use_container_width=True
+                width='stretch'
             )
 
 with tab2:
@@ -1291,7 +1310,7 @@ with tab2:
         with st.spinner("Computing true efficient frontier..."):
             st.plotly_chart(
                 create_efficient_frontier_plot(returns, optimizer),
-                use_container_width=True
+                width='stretch'
             )
         
         # Cumulative Returns
@@ -1322,7 +1341,7 @@ with tab2:
             plot_bgcolor='rgba(0,0,0,0)'
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
         # ── Correlation Heatmap ──────────────────────────────────────────────
         st.subheader("Asset Correlation Heatmap")
@@ -1344,7 +1363,7 @@ with tab2:
             template='plotly_white',
             paper_bgcolor='rgba(0,0,0,0)',
         )
-        st.plotly_chart(corr_fig, use_container_width=True)
+        st.plotly_chart(corr_fig, width='stretch')
 
         # ── Risk-Return Scatter ──────────────────────────────────────────────
         st.subheader("Individual Asset Risk vs Return")
@@ -1378,7 +1397,7 @@ with tab2:
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)'
         )
-        st.plotly_chart(rr_fig, use_container_width=True)
+        st.plotly_chart(rr_fig, width='stretch')
 
 with tab3:
     st.header("Strategy Comparison")
@@ -1457,7 +1476,7 @@ with tab3:
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)'
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         with col2:
             st.subheader("Sharpe Ratio Comparison")
@@ -1478,7 +1497,7 @@ with tab3:
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)'
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         
         # Cumulative comparison
         st.subheader("Cumulative Returns Comparison")
@@ -1513,7 +1532,7 @@ with tab3:
             plot_bgcolor='rgba(0,0,0,0)'
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
 with tab4:
     st.header("Strategy Benchmarking")
@@ -1610,7 +1629,7 @@ with tab4:
                         text_auto='.3f', title="Risk-Adjusted Performance (Sharpe Ratio)",
                         color_discrete_sequence=px.colors.qualitative.G10)
             fig.update_layout(showlegend=False, template='plotly_white', height=380)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
             
             # Sortino bar chart
             col_a, col_b = st.columns(2)
@@ -1619,13 +1638,13 @@ with tab4:
                                text_auto='.3f', title="Sortino Ratio (Downside Risk)",
                                color_discrete_sequence=px.colors.qualitative.Pastel)
                 fig_s.update_layout(showlegend=False, template='plotly_white', height=300)
-                st.plotly_chart(fig_s, use_container_width=True)
+                st.plotly_chart(fig_s, width='stretch')
             with col_b:
                 fig_t = px.bar(df, x='Strategy', y='Time (s)', color='Strategy',
                                text_auto='.2f', title="Execution Time (seconds)",
                                color_discrete_sequence=px.colors.qualitative.Safe)
                 fig_t.update_layout(showlegend=False, template='plotly_white', height=300)
-                st.plotly_chart(fig_t, use_container_width=True)
+                st.plotly_chart(fig_t, width='stretch')
             
             # Full table
             st.subheader("Detailed Comparison Matrix")
@@ -1714,7 +1733,7 @@ if 'optimization_results' in st.session_state:
     )
     dl_col1, dl_col2, dl_col3 = st.columns([1, 2, 1])
     with dl_col2:
-        if st.button("📄 Generate & Download PDF Report", type="primary", use_container_width=True):
+        if st.button("📄 Generate & Download PDF Report", type="primary", width='stretch'):
             # Clear any previous kaleido error
             st.session_state.pop("kaleido_error", None)
             with st.spinner("Generating PDF report…"):
@@ -1742,7 +1761,7 @@ if 'optimization_results' in st.session_state:
                         data=pdf_bytes,
                         file_name=filename,
                         mime="application/pdf",
-                        use_container_width=True,
+                        width='stretch',
                     )
                     st.caption("Includes: Portfolio Weights · Performance Metrics · Strategy Comparison")
                 except Exception as e:

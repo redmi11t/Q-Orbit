@@ -165,7 +165,31 @@ class QAOAOptimizer:
         # Decode solution
         print("\n[3/3] Decoding solution and refining weights...")
         selected_indices, selected_tickers, _ = qubo.decode_solution(bitstring)
-        
+
+        # ── Budget enforcement ───────────────────────────────────────────────
+        # QAOA with p=1 / few iterations may select fewer stocks than the budget
+        # because the budget-constraint penalty is soft (not exact).  Greedily
+        # pad with the highest expected-return unselected stocks so the returned
+        # portfolio always has exactly `budget` holdings.
+        all_tickers = returns.columns.tolist()
+        if len(selected_tickers) < budget:
+            mean_rets = returns.mean()
+            unselected = [t for t in all_tickers if t not in selected_tickers]
+            # Sort by expected return (descending) and take the shortfall
+            shortfall = budget - len(selected_tickers)
+            extras = sorted(unselected, key=lambda t: mean_rets[t], reverse=True)[:shortfall]
+            selected_tickers += extras
+            selected_indices += [all_tickers.index(t) for t in extras]
+            print(f"  ⚠ Budget shortfall padded with: {', '.join(extras)}")
+        elif len(selected_tickers) > budget:
+            # Trim to budget keeping best by expected return
+            mean_rets = returns.mean()
+            selected_tickers = sorted(selected_tickers,
+                                      key=lambda t: mean_rets[t], reverse=True)[:budget]
+            selected_indices = [all_tickers.index(t) for t in selected_tickers]
+            print(f"  ⚠ Over-selection trimmed to budget={budget}")
+        # ─────────────────────────────────────────────────────────────────────
+
         # If no stocks selected (rare), default to all
         if not selected_tickers:
             selected_tickers = returns.columns.tolist()
