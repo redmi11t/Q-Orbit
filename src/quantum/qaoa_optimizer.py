@@ -165,6 +165,7 @@ class QAOAOptimizer:
         # Decode solution
         print("\n[3/3] Decoding solution and refining weights...")
         selected_indices, selected_tickers, _ = qubo.decode_solution(bitstring)
+        selected_indices = list(selected_indices)   # ensure plain list so += concatenates
 
         # ── Budget enforcement ───────────────────────────────────────────────
         # QAOA with p=1 / few iterations may select fewer stocks than the budget
