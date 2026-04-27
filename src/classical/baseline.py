@@ -50,7 +50,9 @@ class MarkowitzOptimizer:
         mu = returns.mean() * 252  # Annualized
         sigma = returns.cov() * 252
         # Add regularization to covariance matrix
-        sigma_np = sigma.values
+        # Use (A + A.T)/2 to get a writable, symmetric NumPy copy
+        # (sigma.values alone returns a read-only view of the DataFrame internals)
+        sigma_np = (sigma.values + sigma.values.T) / 2
         sigma_np += 1e-6 * np.eye(n_assets)
         
         # Objective function: negative Sharpe ratio (to minimize)
