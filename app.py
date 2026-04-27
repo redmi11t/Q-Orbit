@@ -1127,6 +1127,36 @@ with tab1:
                         f"News: {h_info.get('news_count', 0)} articles.  "
                         f"Backend: {h_info.get('backend', 'N/A')}."
                     )
+
+                    # ── Sentiment Analysis Results Table (Hybrid) ─────────────
+                    h_sent_summary = h_info.get('sentiment_summary')
+                    if h_sent_summary is not None and not h_sent_summary.empty:
+                        def _sentiment_label_h(score):
+                            if score > 0.05:
+                                return "🟢 Positive"
+                            elif score < -0.05:
+                                return "🔴 Negative"
+                            else:
+                                return "🟡 Neutral"
+
+                        h_sent_rows = [
+                            {
+                                "Ticker": ticker,
+                                "Avg Sentiment Score": round(
+                                    float(h_sent_summary.loc[ticker, 'avg_sentiment']), 4
+                                ),
+                                "Label": _sentiment_label_h(
+                                    float(h_sent_summary.loc[ticker, 'avg_sentiment'])
+                                ),
+                                "Articles Analyzed": int(
+                                    h_sent_summary.loc[ticker, 'article_count']
+                                ),
+                            }
+                            for ticker in h_sent_summary.index
+                        ]
+                        st.subheader("📰 Sentiment Analysis Results")
+                        st.table(pd.DataFrame(h_sent_rows))
+                    # ─────────────────────────────────────────────────────────
                 
                 perf = optimizer.get_performance_summary()
                 
