@@ -2,8 +2,6 @@
 Sentiment Analysis Module
 Analyze sentiment of financial news using FinBERT
 """
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
-import torch
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Union, Optional
@@ -24,6 +22,12 @@ class FinancialSentimentAnalyzer:
             cache_dir: Directory to cache model (legacy param, now handles via transformers/SentimentCache)
             use_cache: Whether to use local JSON cache for results
         """
+        # Lazy imports so this module can be parsed even when torch/transformers
+        # are not installed (e.g. Streamlit Cloud free tier). The ImportError
+        # is caught by unified_analyzer.py which then falls back to VADER.
+        from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+        import torch
+
         print(f"Loading sentiment model: {model_name}...")
         
         # Load model and tokenizer
