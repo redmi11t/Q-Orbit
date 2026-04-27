@@ -948,6 +948,7 @@ with tab1:
 
                     news_api_key = st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", ""))
                     sentiment_scores = {}
+                    article_counts = {}
 
                     if news_api_key:
                         try:
@@ -958,8 +959,10 @@ with tab1:
                                 if articles:
                                     scores = [vader.analyze_text(a.get('title', ''))['sentiment_value'] for a in articles]
                                     sentiment_scores[ticker] = float(np.mean(scores))
+                                    article_counts[ticker] = len(articles)
                                 else:
                                     sentiment_scores[ticker] = 0.0
+                                    article_counts[ticker] = 0
                             st.info(f"📡 Live news sentiment fetched for {len(sentiment_scores)} tickers.")
                         except Exception as e:
                             st.warning(f"News API failed ({e}). Trying Yahoo Finance RSS…")
@@ -988,6 +991,7 @@ with tab1:
                                     if headlines:
                                         sc = [vader2.analyze_text(h)['sentiment_value'] for h in headlines]
                                         score = float(np.mean(sc))
+                                        article_counts[ticker] = len(headlines)
                                 except Exception:
                                     pass
                             if score is not None:
@@ -1006,6 +1010,29 @@ with tab1:
                                 "running plain Max Sharpe."
                             )
                         # ────────────────────────────────────────────────────────────
+
+                    # ── Sentiment Analysis Results Table ─────────────────────────
+                    if sentiment_scores:
+                        def _sentiment_label(score):
+                            if score > 0.05:
+                                return "🟢 Positive"
+                            elif score < -0.05:
+                                return "🔴 Negative"
+                            else:
+                                return "🟡 Neutral"
+
+                        sent_rows = [
+                            {
+                                "Ticker": t,
+                                "Avg Sentiment Score": round(s, 4),
+                                "Label": _sentiment_label(s),
+                                "Articles Analyzed": article_counts.get(t, "N/A"),
+                            }
+                            for t, s in sentiment_scores.items()
+                        ]
+                        st.subheader("📰 Sentiment Analysis Results")
+                        st.table(pd.DataFrame(sent_rows))
+                    # ─────────────────────────────────────────────────────────────
 
                     # Apply sentiment (or skip if no data)
                     raw_weights = optimizer.optimize_max_sharpe(returns)
