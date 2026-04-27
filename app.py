@@ -882,6 +882,27 @@ def generate_pdf_report(results, selected_tickers, risk_free_rate, preset_choice
 
 
 
+# =====================================
+# Module-level cached resources
+# =====================================
+# Must be defined at module scope — Streamlit forbids @st.cache_resource
+# inside conditional blocks (it raises an error on startup).
+
+@st.cache_resource(show_spinner=False)
+def _get_hybrid_optimizer(
+    _news_api_key, _qaoa_layers, _qaoa_max_iterations,
+    _sentiment_weight, _backend_mode, _ibm_backend_name
+):
+    """Load SentimentQuantumOptimizer (and FinBERT) once per session."""
+    from hybrid.sentiment_quantum_optimizer import SentimentQuantumOptimizer
+    return SentimentQuantumOptimizer(
+        news_api_key=_news_api_key,
+        qaoa_layers=_qaoa_layers,
+        qaoa_max_iterations=_qaoa_max_iterations,
+        sentiment_weight=_sentiment_weight,
+        backend_mode=_backend_mode,
+        ibm_backend_name=_ibm_backend_name,
+    )
 
 
 # =====================================
@@ -1092,7 +1113,6 @@ with tab1:
 
                 # ── Fix 1: Hybrid Sentiment-Quantum ─────────────────────────────────
                 elif optimization_method == "Hybrid Sentiment-Quantum":
-                    from hybrid.sentiment_quantum_optimizer import SentimentQuantumOptimizer
                     if len(returns.columns) > 10:
                         st.error(
                             f"⚛️ Hybrid Sentiment-Quantum supports ≤10 stocks "
@@ -1100,24 +1120,8 @@ with tab1:
                         )
                         st.stop()
 
-                    # Cache the optimizer so FinBERT is only loaded once per
-                    # session — re-creating it on every Streamlit rerun was the
-                    # cause of the app crash (OOM / timeout from repeated heavy
-                    # model loading after the QAOA step completed).
-                    @st.cache_resource(show_spinner=False)
-                    def _get_hybrid_optimizer(
-                        _news_api_key, _qaoa_layers, _qaoa_max_iterations,
-                        _sentiment_weight, _backend_mode, _ibm_backend_name
-                    ):
-                        return SentimentQuantumOptimizer(
-                            news_api_key=_news_api_key,
-                            qaoa_layers=_qaoa_layers,
-                            qaoa_max_iterations=_qaoa_max_iterations,
-                            sentiment_weight=_sentiment_weight,
-                            backend_mode=_backend_mode,
-                            ibm_backend_name=_ibm_backend_name,
-                        )
-
+                    # Use the module-level cached factory so FinBERT is only
+                    # loaded once per session (not on every Streamlit rerun).
                     hybrid = _get_hybrid_optimizer(
                         st.secrets.get("NEWS_API_KEY", os.getenv("NEWS_API_KEY", "")),
                         qaoa_layers,
