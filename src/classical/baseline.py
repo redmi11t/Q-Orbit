@@ -319,9 +319,16 @@ class MarkowitzOptimizer:
     def _calculate_performance(self, returns: pd.DataFrame, weights: pd.Series):
         """Calculate portfolio performance metrics"""
         portfolio_returns = (returns @ weights)
-        
+
         annual_return = portfolio_returns.mean() * 252
         annual_volatility = portfolio_returns.std() * np.sqrt(252)
+
+        # Guard against NaN (e.g. all-NaN returns from bad data)
+        if not np.isfinite(annual_return):
+            annual_return = 0.0
+        if not np.isfinite(annual_volatility):
+            annual_volatility = 0.0
+
         # Clamp volatility to avoid near-zero denominator (can happen with
         # synthetic / heavily-smoothed data), which would blow Sharpe to 300+.
         annual_volatility_safe = max(annual_volatility, 1e-6)
@@ -334,11 +341,16 @@ class MarkowitzOptimizer:
         running_max = cumulative.expanding().max()
         drawdown = (cumulative - running_max) / running_max
         max_drawdown = drawdown.min()
+        if not np.isfinite(max_drawdown):
+            max_drawdown = 0.0
 
         # Sortino Ratio (penalises only downside/negative returns)
         downside_returns = portfolio_returns[portfolio_returns < 0]
         if len(downside_returns) > 1:
             downside_std = downside_returns.std() * np.sqrt(252)
+            # std() on a short Series can still return NaN (e.g. constant values)
+            if not np.isfinite(downside_std):
+                downside_std = annual_volatility_safe
         else:
             # No downside returns → use total volatility as a conservative proxy
             # so we don't divide by ~0 and produce multi-billion Sortino values
@@ -350,7 +362,11 @@ class MarkowitzOptimizer:
         sortino_ratio = float(np.clip(sortino_ratio, -50.0, 50.0))
 
         # Calmar Ratio (annualised return / absolute max drawdown)
-        calmar_ratio = annual_return / abs(max_drawdown) if abs(max_drawdown) > 1e-10 else 0.0
+        # Also clip to ±50 to prevent blow-up when drawdown is a tiny rounding artifact
+        if abs(max_drawdown) > 1e-10:
+            calmar_ratio = float(np.clip(annual_return / abs(max_drawdown), -50.0, 50.0))
+        else:
+            calmar_ratio = 0.0
         
         self.performance = {
             'annual_return': annual_return,
