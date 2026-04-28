@@ -1426,11 +1426,15 @@ with tab3:
         
         opt_annual_return = opt_returns_series.mean() * 252
         opt_annual_vol = opt_returns_series.std() * np.sqrt(252)
-        opt_sharpe = (opt_annual_return - risk_free_rate) / opt_annual_vol
-        
+        opt_sharpe = float(np.clip(
+            (opt_annual_return - risk_free_rate) / max(opt_annual_vol, 1e-6), -50.0, 50.0
+        ))
+
         eq_annual_return = eq_returns_series.mean() * 252
         eq_annual_vol = eq_returns_series.std() * np.sqrt(252)
-        eq_sharpe = (eq_annual_return - risk_free_rate) / eq_annual_vol
+        eq_sharpe = float(np.clip(
+            (eq_annual_return - risk_free_rate) / max(eq_annual_vol, 1e-6), -50.0, 50.0
+        ))
         
         # Comparison Table
         st.subheader("Optimized vs Equal-Weight Portfolio")

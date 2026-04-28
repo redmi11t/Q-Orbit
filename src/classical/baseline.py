@@ -322,8 +322,13 @@ class MarkowitzOptimizer:
         
         annual_return = portfolio_returns.mean() * 252
         annual_volatility = portfolio_returns.std() * np.sqrt(252)
-        sharpe_ratio = (annual_return - self.risk_free_rate) / annual_volatility
-        
+        # Clamp volatility to avoid near-zero denominator (can happen with
+        # synthetic / heavily-smoothed data), which would blow Sharpe to 300+.
+        annual_volatility_safe = max(annual_volatility, 1e-6)
+        sharpe_ratio = (annual_return - self.risk_free_rate) / annual_volatility_safe
+        # Cap at ±50: any value outside this range is a numerical artifact
+        sharpe_ratio = float(np.clip(sharpe_ratio, -50.0, 50.0))
+
         # Drawdown
         cumulative = (1 + portfolio_returns).cumprod()
         running_max = cumulative.expanding().max()
@@ -332,8 +337,17 @@ class MarkowitzOptimizer:
 
         # Sortino Ratio (penalises only downside/negative returns)
         downside_returns = portfolio_returns[portfolio_returns < 0]
-        downside_std = downside_returns.std() * np.sqrt(252) if len(downside_returns) > 0 else 1e-10
+        if len(downside_returns) > 1:
+            downside_std = downside_returns.std() * np.sqrt(252)
+        else:
+            # No downside returns → use total volatility as a conservative proxy
+            # so we don't divide by ~0 and produce multi-billion Sortino values
+            downside_std = annual_volatility_safe
+        # Apply the same 1e-6 floor to downside_std as well
+        downside_std = max(downside_std, 1e-6)
         sortino_ratio = (annual_return - self.risk_free_rate) / downside_std
+        # Cap at ±50 for the same reason
+        sortino_ratio = float(np.clip(sortino_ratio, -50.0, 50.0))
 
         # Calmar Ratio (annualised return / absolute max drawdown)
         calmar_ratio = annual_return / abs(max_drawdown) if abs(max_drawdown) > 1e-10 else 0.0
